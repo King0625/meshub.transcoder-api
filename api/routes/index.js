@@ -5,7 +5,7 @@ const util = require('util');
 
 let g_jobs = {};
 let g_job_test = {
-    "sourceUrl": "https://torii-demo.hkmesh.net/test.mp4",
+    "sourceUrl": "https://torii-demo.meshub.io/test.mp4",
     "paramCrf": "23",
     "paramProfile": "ultrafast",
     "paramResolutionWidth": "1280",
