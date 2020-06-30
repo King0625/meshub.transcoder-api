@@ -117,7 +117,7 @@ router.get('/api/transcode/job_meshub', function(req, res, next) {
 
 router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 	let meshub_ip = req.clientIp;
-	console.log(`POST job_meshub_profress from ${meshub_ip}, query.test=${req.query.test}, body=${req.body}`);
+	console.log(`POST job_meshub_progress from ${meshub_ip}, query.test=${req.query.test}, body=${req.body}`);
 
 	let job_uuid = req.body.uuid;
 	if (job_uuid == null) {
