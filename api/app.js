@@ -7,8 +7,11 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const requestIp = require('request-ip');
 const fileUpload = require('express-fileupload');
-var app = express();
 
+var cors = require('cors')
+
+var app = express();
+app.use(cors());
 app.use(fileUpload());
 app.use(logger('dev'));
 app.use(express.json());

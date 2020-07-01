@@ -111,13 +111,13 @@ router.get('/api/transcode/job_meshub', function(req, res, next) {
 			}
 		}
 	}
-		
+	console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
 	return res.status(200).json(job_json);
 });
 
 router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 	let meshub_ip = req.clientIp;
-	console.log(`POST job_meshub_progress from ${meshub_ip}, query.test=${req.query.test}, body=${req.body}`);
+	console.log(`POST job_meshub_progress from ${meshub_ip}, query.test=${req.query.test}, progress=${req.body.progress}`);
 
 	let job_uuid = req.body.uuid;
 	if (job_uuid == null) {
@@ -144,6 +144,7 @@ router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 });
 
 router.post('/api/transcode/upload', function(req, res,next) {
+	console.log(`UPLOAD from ${req.clientIp},name=${req.files.sampleFile.name}`);
 	if (!req.files || Object.keys(req.files).length === 0) {
 	  return res.status(400).send('No files were uploaded.');
 	}
