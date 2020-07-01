@@ -33,6 +33,7 @@ function job_dispatch(job) {
 		let job_slice = {};
 		Object.assign(job_slice,job);
 		delete job_slice.meshubNumbers;
+		delete job_slice.overall_progress;
 		delete job_slice.splitJobs;
 		job_slice.paramSeekBeginSec = paramSeekBeginSec;
 		job_slice.paramSeekEndSec = paramSeekEndSec;
