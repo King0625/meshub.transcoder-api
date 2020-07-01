@@ -147,6 +147,9 @@ router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 		overall_progress += splitJob.progress;
 	}
 	job.overall_progress = overall_progress / job.meshubNumbers;
+	if (job.overall_progress == 100) {
+		job.result_mp4 = 'https://torii-demo.meshub.io/result_pseudo.mp4';
+	}
 	return res.status(200).end();
 });
 
