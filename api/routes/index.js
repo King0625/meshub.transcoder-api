@@ -63,6 +63,12 @@ function job_create_test() {
 	}
 }
 
+function delete_old_mp4_files() {
+	const child_process = require('child_process');
+	let cmd = 'rm -f routes/*.mp4';
+	let stdout = child_process.execSync(cmd);
+	console.log(`delete_mp4:${stdout.toString()}`);
+}
 function find_meshub_id_from_request(req) {
 	let meshubId = req.clientIp;
 	if (req.query.test == 'meshub0') meshubId = meshub_id_map[0];
@@ -80,6 +86,7 @@ router.post('/api/transcode/job', function(req,res,next) {
 	g_job_test = req.body;
 	g_job_test.uuid = uuidv4();
 	job_dispatch(g_job_test);
+	delete_old_mp4_files();
 	res.status(200).json(g_job_test);
 });
 
