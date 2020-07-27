@@ -23,7 +23,7 @@ meshub_id_map = [
 function job_dispatch(job) {
 	job.meshubNumbers = parseInt(job.meshubNumbers);
 	let meshubNumbers = job.meshubNumbers;
-	let segmentLength = 240 / meshubNumbers;
+	let segmentLength = 60 / meshubNumbers;
 	let paramSeekBeginSec = 0;
 	let paramSeekEndSec = segmentLength;
 	
@@ -106,7 +106,7 @@ router.get('/api/transcode/job', function(req, res, next) {
 router.get('/api/transcode/job_meshub', function(req, res, next) {
 
 	let meshub_ip = req.clientIp;
-	console.log(`GET job_meshub from ${meshub_ip},query.test=${req.query.test}`);
+	//console.log(`GET job_meshub from ${meshub_ip},query.test=${req.query.test}`);
 	let job_json = {};
 
 	let meshubId = find_meshub_id_from_request(req);
@@ -119,13 +119,12 @@ router.get('/api/transcode/job_meshub', function(req, res, next) {
 			}
 		}
 	}
-	console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
+	//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
 	return res.status(200).json(job_json);
 });
 
 router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 	let meshub_ip = req.clientIp;
-	console.log(`POST job_meshub_progress from ${meshub_ip}, query.test=${req.query.test}, progress=${req.body.progress}`);
 
 	let job_uuid = req.body.uuid;
 	if (job_uuid == null) {
@@ -149,8 +148,10 @@ router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 	}
 	job.overall_progress = overall_progress / job.meshubNumbers;
 	if (job.overall_progress == 100) {
-		job.result_mp4 = 'https://torii-demo.meshub.io/result_pseudo.mp4';
+		job.overall_progress = 99;
 	}
+
+	console.log(`POST job_meshub_progress from ${meshub_ip}, query.test=${req.query.test}, progress=${req.body.progress},overall_progress=${job.overall_progress}`);
 	return res.status(200).end();
 });
 
@@ -194,9 +195,10 @@ router.post('/api/transcode/upload', function(req, res,next) {
 	  }
 	  
 	  if (all_split_jobs_uploaded) {
-		execute_concat();
+		let result_mp4 = execute_concat();
 		job.overall_progress = 100;
-		job.result_mp4 = `https://torii-demo.meshub.io/result.mp4`;
+		job.result_mp4 = `https://torii-demo.meshub.io/${result_mp4}`;
+		console.log(`upload: result_mp4=${job.result_mp4}`);
 	  }
 	});
   });
@@ -206,8 +208,10 @@ function execute_concat() {
 	const execFileSync = require('child_process').execFileSync;
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
-	const stdout = execFileSync(cmd);
+	let output_file_name = `${Math.random().toString(36).substring(7)}.mp4`;
+	const stdout = execFileSync(cmd,[output_file_name]);
 	console.log(`concat finished: ${stdout}`);
+	return output_file_name;
 }
 
 function find_job_uuid_from_slice_filename(str) {
