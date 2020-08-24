@@ -7,23 +7,47 @@ const os = require('os');
 
 //let g_jobs = {};
 let g_job_test = {};
+let g_meshubs_healthcheck = {};
 
 /* GET home page. */
 router.get('/api/hello', function(req,res,next) {
-	return res.status(200).send('world');
+	let ip_list = Object.keys(g_meshubs_healthcheck);
+	for (let i=0;i<ip_list.length;i++) {
+		let ip = ip_list[i];
+		if (meshub_id_map.includes(ip)) {
+			g_meshubs_healthcheck[ip].assigned = meshub_id_map.indexOf(ip);
+		}
+		if (Date.now() - g_meshubs_healthcheck[ip].timestamp.getTime() > 60000) {
+			g_meshubs_healthcheck[ip].dead = true;
+		}
+
+		g_meshubs_healthcheck[ip].time = g_meshubs_healthcheck[ip].timestamp.toLocaleString('en-US',{timeZone:'Asia/Taipei'})
+	}
+	return res.status(200).json(g_meshubs_healthcheck);
+});
+
+router.get('/api/hello/reset', function (req,res,next) {
+	g_meshubs_healthcheck = {};
+	return res.status(200).json(g_meshubs_healthcheck);
 });
 
 meshub_id_map = [
-	'42.200.176.59',	//6a15
+	'119.247.119.29',	//d65d
 	'42.200.236.220',	//77f8
 	'42.200.242.86',	//6923
 	'42.200.255.169'	//137a
 ];
 
+meshub_id_map.push('59.148.144.180'); //845e
+meshub_id_map.push('183.179.232.171'); //e59e
+meshub_id_map.push('61.93.58.34'); //eac3
+//meshub_id_map.push('58.177.109.141'); //ee23  NG, version=1.0s
+meshub_id_map.push('112.120.198.25'); //44ca
+
 function job_dispatch(job) {
 	job.meshubNumbers = parseInt(job.meshubNumbers);
 	let meshubNumbers = job.meshubNumbers;
-	let segmentLength = 60 / meshubNumbers;
+	let segmentLength = 80 / meshubNumbers;
 	let paramSeekBeginSec = 0;
 	let paramSeekEndSec = segmentLength;
 	
@@ -43,6 +67,7 @@ function job_dispatch(job) {
 		job.splitJobs.push(job_slice);
 		paramSeekBeginSec += segmentLength;
 		paramSeekEndSec += segmentLength;
+		console.log(`pushed job_slice ${i}/${meshubNumbers}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
 	}
 }
 
@@ -72,10 +97,6 @@ function delete_old_mp4_files() {
 }
 function find_meshub_id_from_request(req) {
 	let meshubId = req.clientIp;
-	if (req.query.test == 'meshub0') meshubId = meshub_id_map[0];
-	if (req.query.test == 'meshub1') meshubId = meshub_id_map[1];
-	if (req.query.test == 'meshub2') meshubId = meshub_id_map[2];
-	if (req.query.test == 'meshub3') meshubId = meshub_id_map[3];
 	return meshubId;
 }
 
@@ -106,7 +127,8 @@ router.get('/api/transcode/job', function(req, res, next) {
 router.get('/api/transcode/job_meshub', function(req, res, next) {
 
 	let meshub_ip = req.clientIp;
-	//console.log(`GET job_meshub from ${meshub_ip},query.test=${req.query.test}`);
+	console.log(`GET job_meshub from ${meshub_ip}`);
+	g_meshubs_healthcheck[meshub_ip] = {timestamp: new Date()};
 	let job_json = {};
 
 	let meshubId = find_meshub_id_from_request(req);
@@ -229,3 +251,4 @@ function find_job_uuid_from_slice_filename(str) {
 		else return null;
 	}
 }
+
