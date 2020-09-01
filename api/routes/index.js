@@ -32,19 +32,6 @@ router.get('/api/hello/reset', async function (req, res, next) {
 	return res.status(200).json(await Meshub.find({}));
 });
 
-// meshub_id_map = [
-// 	'119.247.119.29',	//d65d
-// 	'42.200.236.220',	//77f8
-// 	'42.200.242.86',	//6923
-// 	'42.200.255.169'	//137a
-// ];
-
-// meshub_id_map.push('59.148.144.180'); //845e
-// meshub_id_map.push('183.179.232.171'); //e59e
-// meshub_id_map.push('61.93.58.34'); //eac3
-// //meshub_id_map.push('58.177.109.141'); //ee23  NG, version=1.0s
-// meshub_id_map.push('112.120.198.25'); //44ca
-
 async function job_dispatch(job) {
 	job.meshubNumbers = parseInt(job.meshubNumbers);
 	let meshubNumbers = job.meshubNumbers;
@@ -126,7 +113,7 @@ router.post('/api/transcode/job', function (req, res, next) {
 	})();
 });
 
-router.get('/api/transcode/job', async function (req, res, next) {
+router.get('/api/transcode/job', function (req, res, next) {
 	let job_uuid = req.query.uuid;
 	if (job_uuid == null) {
 		return res.status(400).json({ error: `job uuid not found in request body` });
@@ -149,8 +136,6 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		ip_address: meshub_ip,
 		timestamp: new Date()
 	};
-	// g_meshubs_healthcheck[meshub_ip] = {timestamp: new Date()};
-	let job_json = {};
 
 	let meshubId = find_meshub_id_from_request(req);
 
