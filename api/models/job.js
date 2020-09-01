@@ -1,0 +1,63 @@
+const mongoose = require('mongoose')
+
+const jobSchema = new mongoose.Schema({
+  uuid: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  sourceUrl: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  paramCrf: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  paramProfile: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  paramResolutionWidth: {
+    type: Number,
+    required: true
+  },
+  paramResolutionHeight: {
+    type: Number,
+    required: true
+  },
+  resolution: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  meshubNumbers: {
+    type: Number,
+    required: true
+  },
+  overall_progress: {
+    type: Number,
+    required: true
+  },
+  result_mp4: {
+    type: String,
+    trim: true
+  }
+},{
+  timestamps: true, 
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true }
+});
+
+jobSchema.virtual('splitJobs', {
+  ref: 'SplitJob',
+  localField: 'uuid',
+  foreignField: 'uuid',
+})
+
+const Job = mongoose.model('Job', jobSchema);
+
+module.exports = Job;
