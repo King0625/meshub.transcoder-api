@@ -160,17 +160,11 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 			setDefaultsOnInsert: true
 		});
 
-		const g_job_test = await Job.findOne({ "overall_progress": { "$ne": 100 } }).populate("splitJobs");
-		// Get split jobs
-		if (g_job_test && g_job_test.splitJobs && g_job_test.splitJobs.length > 0) {
-			for (let i = 0; i < g_job_test.splitJobs.length; i++) {
-				let splitJob = g_job_test.splitJobs[i];
-				// 可能有兩個 sub_job 在同一個 meshub 
-				if (splitJob.meshubId == meshubId && splitJob.progress == 0) {
-					job_json = splitJob;
-				}
-			}
-		}
+		const first_splitJob = await SplitJob.findOne({
+			"meshubId": meshubId,
+			"progress": { "$ne": 100 }
+		})
+		const job_json = (first_splitJob != null && first_splitJob.progress == 0) ? first_splitJob : {};
 		//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
 		return res.status(200).json(job_json);
 
