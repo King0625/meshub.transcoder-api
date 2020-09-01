@@ -9,44 +9,43 @@ const Job = require('../models/job');
 const Meshub = require('../models/meshub');
 const SplitJob = require('../models/splitJob');
 
-/* GET home page. */
-router.get('/api/hello', async function (req, res, next) {
+async function refresh_meshub_status() {
 	const meshubs = await Meshub.find({});
-	for (let i = 0; i < meshubs.length; i++) {
-		let meshub = meshubs[i];
-		if (meshub_id_map.includes(meshub.ip_address)) {
-			meshub.assigned = meshub_id_map.indexOf(meshub.ip_address);
-		}
+	for (meshub of meshubs) {
 		if (Date.now() - meshub.timestamp.getTime() > 60000) {
 			meshub.dead = true;
 		}
-
 		meshub.time = meshub.timestamp.toLocaleString('en-US', { timeZone: 'Asia/Taipei' })
-
 		await meshub.save();
 	}
+	return meshubs;
+}
+
+/* GET home page. */
+router.get('/api/hello', async function (req, res, next) {
+	const meshubs = await refresh_meshub_status();
 	return res.status(200).json(meshubs);
 });
 
-router.get('/api/hello/reset', function (req, res, next) {
-	g_meshubs_healthcheck = {};
-	return res.status(200).json(g_meshubs_healthcheck);
+router.get('/api/hello/reset', async function (req, res, next) {
+	await Meshub.remove({});
+	return res.status(200).json(await Meshub.find({}));
 });
 
-meshub_id_map = [
-	'119.247.119.29',	//d65d
-	'42.200.236.220',	//77f8
-	'42.200.242.86',	//6923
-	'42.200.255.169'	//137a
-];
+// meshub_id_map = [
+// 	'119.247.119.29',	//d65d
+// 	'42.200.236.220',	//77f8
+// 	'42.200.242.86',	//6923
+// 	'42.200.255.169'	//137a
+// ];
 
-meshub_id_map.push('59.148.144.180'); //845e
-meshub_id_map.push('183.179.232.171'); //e59e
-meshub_id_map.push('61.93.58.34'); //eac3
-//meshub_id_map.push('58.177.109.141'); //ee23  NG, version=1.0s
-meshub_id_map.push('112.120.198.25'); //44ca
+// meshub_id_map.push('59.148.144.180'); //845e
+// meshub_id_map.push('183.179.232.171'); //e59e
+// meshub_id_map.push('61.93.58.34'); //eac3
+// //meshub_id_map.push('58.177.109.141'); //ee23  NG, version=1.0s
+// meshub_id_map.push('112.120.198.25'); //44ca
 
-function job_dispatch(job) {
+async function job_dispatch(job) {
 	job.meshubNumbers = parseInt(job.meshubNumbers);
 	let meshubNumbers = job.meshubNumbers;
 	let segmentLength = 80 / meshubNumbers;
@@ -55,7 +54,14 @@ function job_dispatch(job) {
 
 	job.splitJobs = [];
 	job.overall_progress = 0;
+	const alive_meshubs = await Meshub.find({ dead: false });
+	if (Date.now() - meshub.timestamp.getTime() > 60000) {
+		meshub.dead = true;
+	}
 	for (let i = 0; i < meshubNumbers; i++) {
+		// To prevent if meshubNumber is greater than the number of alive meshubs
+		let assigned = i % alive_meshubs.length;
+
 		let job_slice = {};
 		Object.assign(job_slice, job);
 		delete job_slice.meshubNumbers;
@@ -63,7 +69,7 @@ function job_dispatch(job) {
 		delete job_slice.splitJobs;
 		job_slice.paramSeekBeginSec = paramSeekBeginSec;
 		job_slice.paramSeekEndSec = paramSeekEndSec;
-		job_slice.meshubId = meshub_id_map[i];
+		job_slice.meshubId = alive_meshubs[assigned].ip_address;
 		job_slice.progress = 0;
 		job_slice.uploadFileName = `${job.uuid}-${i}.mp4`;
 		job.splitJobs.push(job_slice);
@@ -102,13 +108,15 @@ function find_meshub_id_from_request(req) {
 router.post('/api/transcode/job', function (req, res, next) {
 	console.log(util.inspect(req.body));
 	const g_job_tests = req.body.data;
-	g_job_tests.forEach(g_job_test => {
-		g_job_test.uuid = uuidv4();
-		job_dispatch(g_job_test);
-		delete_old_mp4_files();
-	});
 
 	(async function () {
+		await refresh_meshub_status();
+
+		for (g_job_test of g_job_tests) {
+			g_job_test.uuid = uuidv4();
+			await job_dispatch(g_job_test);
+			delete_old_mp4_files();
+		}
 		const insertMany = await Job.insertMany(g_job_tests);
 
 		console.log(`Bulk insert jobs...`);
@@ -159,6 +167,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		if (g_job_test && g_job_test.splitJobs && g_job_test.splitJobs.length > 0) {
 			for (let i = 0; i < g_job_test.splitJobs.length; i++) {
 				let splitJob = g_job_test.splitJobs[i];
+				// 可能有兩個 sub_job 在同一個 meshub 
 				if (splitJob.meshubId == meshubId && splitJob.progress == 0) {
 					job_json = splitJob;
 				}
@@ -171,6 +180,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 
 });
 
+/* How to handle hanging sub_jobs? */
 router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 	let meshub_ip = req.clientIp;
 
