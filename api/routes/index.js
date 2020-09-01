@@ -10,9 +10,9 @@ const Meshub = require('../models/meshub');
 const SplitJob = require('../models/splitJob');
 
 /* GET home page. */
-router.get('/api/hello', async function(req,res,next) {
+router.get('/api/hello', async function (req, res, next) {
 	const meshubs = await Meshub.find({});
-	for (let i=0;i<meshubs.length;i++) {
+	for (let i = 0; i < meshubs.length; i++) {
 		let meshub = meshubs[i];
 		if (meshub_id_map.includes(meshub.ip_address)) {
 			meshub.assigned = meshub_id_map.indexOf(meshub.ip_address);
@@ -21,14 +21,14 @@ router.get('/api/hello', async function(req,res,next) {
 			meshub.dead = true;
 		}
 
-		meshub.time = meshub.timestamp.toLocaleString('en-US',{timeZone:'Asia/Taipei'})
+		meshub.time = meshub.timestamp.toLocaleString('en-US', { timeZone: 'Asia/Taipei' })
 
 		await meshub.save();
 	}
 	return res.status(200).json(meshubs);
 });
 
-router.get('/api/hello/reset', function (req,res,next) {
+router.get('/api/hello/reset', function (req, res, next) {
 	g_meshubs_healthcheck = {};
 	return res.status(200).json(g_meshubs_healthcheck);
 });
@@ -52,12 +52,12 @@ function job_dispatch(job) {
 	let segmentLength = 80 / meshubNumbers;
 	let paramSeekBeginSec = 0;
 	let paramSeekEndSec = segmentLength;
-	
+
 	job.splitJobs = [];
 	job.overall_progress = 0;
-	for (let i=0;i<meshubNumbers;i++) {
+	for (let i = 0; i < meshubNumbers; i++) {
 		let job_slice = {};
-		Object.assign(job_slice,job);
+		Object.assign(job_slice, job);
 		delete job_slice.meshubNumbers;
 		delete job_slice.overall_progress;
 		delete job_slice.splitJobs;
@@ -72,10 +72,10 @@ function job_dispatch(job) {
 		console.log(`pushed job_slice ${i}/${meshubNumbers}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
 	}
 
-	(async function(){
+	(async function () {
 		const insertMany = await SplitJob.insertMany(job.splitJobs);
 		console.log(`Bulk insert split jobs...`);
-		console.log(JSON.stringify(insertMany,'','\t'));
+		console.log(JSON.stringify(insertMany, '', '\t'));
 	})();
 }
 
@@ -93,7 +93,7 @@ function job_create_test() {
 		"paramResolutionHeight": "720",
 		"meshubNumbers": "2",
 		"uuid": "16b53dd0-788d-4e29-b4fc-bca2094b1047",
-		"splitJobs" : []
+		"splitJobs": []
 	}
 }
 
@@ -111,7 +111,7 @@ function find_meshub_id_from_request(req) {
 //job_dispatch(g_job_test);
 //console.log(`test job:\n ${util.inspect(g_job_test)}`);
 
-router.post('/api/transcode/job', function(req,res,next) {
+router.post('/api/transcode/job', function (req, res, next) {
 	console.log(util.inspect(req.body));
 	const g_job_tests = req.body.data;
 	g_job_tests.forEach(g_job_test => {
@@ -119,26 +119,26 @@ router.post('/api/transcode/job', function(req,res,next) {
 		job_dispatch(g_job_test);
 		delete_old_mp4_files();
 	});
-	
-	(async function(){
+
+	(async function () {
 		const insertMany = await Job.insertMany(g_job_tests);
-	
+
 		console.log(`Bulk insert jobs...`);
-		console.log(JSON.stringify(insertMany,'','\t'));
-	
+		console.log(JSON.stringify(insertMany, '', '\t'));
+
 		res.status(200).json({
 			jobs: g_job_tests
 		});
 	})();
 });
 
-router.get('/api/transcode/job', async function(req, res, next) {
+router.get('/api/transcode/job', async function (req, res, next) {
 	let job_uuid = req.query.uuid;
 	if (job_uuid == null) {
-		return res.status(400).json({error:`job uuid not found in request body`});
+		return res.status(400).json({ error: `job uuid not found in request body` });
 	}
 	else {
-		(async function(){
+		(async function () {
 			let job = await job_find(job_uuid);
 			if (job == null) return res.status(404).end();
 			else return res.status(200).json(job);
@@ -146,11 +146,11 @@ router.get('/api/transcode/job', async function(req, res, next) {
 	}
 });
 
-router.get('/api/transcode/job_meshub', function(req, res, next) {
+router.get('/api/transcode/job_meshub', function (req, res, next) {
 
 	let meshub_ip = req.clientIp;
 	console.log(`GET job_meshub from ${meshub_ip}`);
-	
+
 	const meshub_data = {
 		ip_address: meshub_ip,
 		timestamp: new Date()
@@ -160,16 +160,16 @@ router.get('/api/transcode/job_meshub', function(req, res, next) {
 
 	let meshubId = find_meshub_id_from_request(req);
 
-	(async function(){
-		await Meshub.updateOne({ip_address: meshub_data.ip_address}, meshub_data, {
+	(async function () {
+		await Meshub.updateOne({ ip_address: meshub_data.ip_address }, meshub_data, {
 			upsert: true,
-			setDefaultsOnInsert: true 
+			setDefaultsOnInsert: true
 		});
 
 		const g_job_test = await Job.findOne({ "overall_progress": { "$ne": 100 } }).populate("splitJobs");
 		// Get split jobs
-		if (g_job_test && g_job_test.splitJobs && g_job_test.splitJobs.length > 0 ) {
-			for (let i=0;i<g_job_test.splitJobs.length;i++) {
+		if (g_job_test && g_job_test.splitJobs && g_job_test.splitJobs.length > 0) {
+			for (let i = 0; i < g_job_test.splitJobs.length; i++) {
 				let splitJob = g_job_test.splitJobs[i];
 				if (splitJob.meshubId == meshubId && splitJob.progress == 0) {
 					job_json = splitJob;
@@ -183,24 +183,24 @@ router.get('/api/transcode/job_meshub', function(req, res, next) {
 
 });
 
-router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
+router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 	let meshub_ip = req.clientIp;
 
 	let job_uuid = req.body.uuid;
 	if (job_uuid == null) {
-		return res.status(400).json({error:`job uuid not found in request body`});
+		return res.status(400).json({ error: `job uuid not found in request body` });
 	}
 
-	(async function(){
+	(async function () {
 		let job = await job_find(job_uuid);
 		if (job == null) {
-			return res.status(404).json({error:`job with uuid not found: ${job_uuid}`});
+			return res.status(404).json({ error: `job with uuid not found: ${job_uuid}` });
 		}
-	
+
 		let meshubId = find_meshub_id_from_request(req);
 		let splitJobs = await SplitJob.find({ uuid: job_uuid });
 		let overall_progress = 0;
-		for (let i=0;i<splitJobs.length;i++) {
+		for (let i = 0; i < splitJobs.length; i++) {
 			let splitJob = splitJobs[i];
 			if (splitJob.meshubId == meshubId) {
 				splitJob.progress = req.body.progress;
@@ -221,41 +221,41 @@ router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
 	})();
 });
 
-router.post('/api/transcode/upload', function(req, res,next) {
+router.post('/api/transcode/upload', function (req, res, next) {
 	console.log(`UPLOAD from ${req.clientIp},name=${req.files.sampleFile.name}`);
 	if (!req.files || Object.keys(req.files).length === 0) {
-	  return res.status(400).send('No files were uploaded.');
+		return res.status(400).send('No files were uploaded.');
 	}
-  
+
 	// The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
 	let sampleFile = req.files.sampleFile;
-  
+
 	// Use the mv() method to place the file somewhere on your server
 	let path = `${__dirname}/${sampleFile.name}`;
-	sampleFile.mv(path, function(err) {
-	  if (err)
-		return res.status(500).send(err);
-  
-	  let job_uuid = find_job_uuid_from_slice_filename(sampleFile.name);
-	  if (job_uuid == null) {
-		  return res.status(200).json({result: `failed to parse job uuid:${sampleFile.name}`});
-	  }
+	sampleFile.mv(path, function (err) {
+		if (err)
+			return res.status(500).send(err);
+
+		let job_uuid = find_job_uuid_from_slice_filename(sampleFile.name);
+		if (job_uuid == null) {
+			return res.status(200).json({ result: `failed to parse job uuid:${sampleFile.name}` });
+		}
 
 		console.log(`upload: checking transcode job: ${job_uuid}`);
 
-		(async function(){
+		(async function () {
 			let job = await job_find(job_uuid);
 			if (job == null) {
-				return res.status(200).json({result: `failed to find job with uuid:${job_uuid}`});
+				return res.status(200).json({ result: `failed to find job with uuid:${job_uuid}` });
 			}
-	
-			res.status(200).json({result: 'upload success', path: path});
-	
+
+			res.status(200).json({ result: 'upload success', path: path });
+
 			//might trigger concat job
 			let all_split_jobs_uploaded = true;
 			let splitJobs = await SplitJob.find({ uuid: job_uuid });
 
-			for (let i=0;i<splitJobs.length;i++) {
+			for (let i = 0; i < splitJobs.length; i++) {
 				let job_slice = splitJobs[i];
 				let transcode_segment_exist = fs.existsSync(`${__dirname}/${job_slice.uploadFileName}`);
 				if (transcode_segment_exist == false) {
@@ -263,17 +263,18 @@ router.post('/api/transcode/upload', function(req, res,next) {
 				}
 				console.log(`job_slice for meshub ${job_slice.meshubId} : progress=${job_slice.progress}, segment_file=${job_slice.uploadFileName},segment_file_exists=${transcode_segment_exist}, dir=${__dirname}`);
 			}
-			
+
 			if (all_split_jobs_uploaded) {
-			let result_mp4 = execute_concat();
-			job.overall_progress = 100;
-			job.result_mp4 = `https://torii-demo.meshub.io/${result_mp4}`;
-			await job.save();
-			console.log(`upload: result_mp4=${job.result_mp4}`);
+				let result_mp4 = execute_concat();
+				job.overall_progress = 100;
+				job.result_mp4 = `https://torii-demo.meshub.io/${result_mp4}`;
+				await job.save();
+				console.log(`upload: result_mp4=${job.result_mp4}`);
 			}
 		})();
 	});
 });
+
 module.exports = router;
 
 function execute_concat() {
@@ -281,7 +282,7 @@ function execute_concat() {
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${Math.random().toString(36).substring(7)}.mp4`;
-	const stdout = execFileSync(cmd,[output_file_name]);
+	const stdout = execFileSync(cmd, [output_file_name]);
 	console.log(`concat finished: ${stdout}`);
 	return output_file_name;
 }
@@ -295,7 +296,7 @@ function find_job_uuid_from_slice_filename(str) {
 		if (m.index === regex.lastIndex) {
 			regex.lastIndex++;
 		}
-		
+
 		// The result can be accessed through the `m`-variable.
 		if (m.length > 1) return m[1];
 		else return null;
