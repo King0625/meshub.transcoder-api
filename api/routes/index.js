@@ -84,18 +84,6 @@ async function job_find(job_uuid) {
 	return g_job_test;
 }
 
-function job_create_test() {
-	g_job_test = {
-		"sourceUrl": "https://torii-demo.meshub.io/test.mp4",
-		"paramCrf": "23",
-		"paramProfile": "ultrafast",
-		"paramResolutionWidth": "1280",
-		"paramResolutionHeight": "720",
-		"meshubNumbers": "2",
-		"uuid": "16b53dd0-788d-4e29-b4fc-bca2094b1047",
-		"splitJobs": []
-	}
-}
 
 function delete_old_mp4_files() {
 	const child_process = require('child_process');
