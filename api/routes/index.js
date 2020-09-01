@@ -55,9 +55,7 @@ async function job_dispatch(job) {
 	job.splitJobs = [];
 	job.overall_progress = 0;
 	const alive_meshubs = await Meshub.find({ dead: false });
-	if (Date.now() - meshub.timestamp.getTime() > 60000) {
-		meshub.dead = true;
-	}
+
 	for (let i = 0; i < meshubNumbers; i++) {
 		// To prevent if meshubNumber is greater than the number of alive meshubs
 		let assigned = i % alive_meshubs.length;
