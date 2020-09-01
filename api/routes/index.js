@@ -6,8 +6,7 @@ const fs = require('fs');
 const os = require('os');
 
 //let g_jobs = {};
-// let g_job_test = {};
-let g_job_tests = [];
+let g_job_test = {};
 let g_meshubs_healthcheck = {};
 
 /* GET home page. */
@@ -73,10 +72,8 @@ function job_dispatch(job) {
 }
 
 function job_find(job_uuid) {
-	const g_job_test = g_job_tests.filter(el => el.uuid == job_uuid)[0];
-	// if (job_uuid == g_job_test.uuid) return g_job_test;
-	// else return null;
-	return g_job_test == undefined ? null : g_job_test;
+	if (job_uuid == g_job_test.uuid) return g_job_test;
+	else return null;
 }
 
 function job_create_test() {
@@ -108,15 +105,11 @@ function find_meshub_id_from_request(req) {
 
 router.post('/api/transcode/job', function(req,res,next) {
 	console.log(util.inspect(req.body));
-	g_job_tests = req.body.data;
-	g_job_tests.forEach(g_job_test => {
-		g_job_test.uuid = uuidv4();
-		job_dispatch(g_job_test);
-		delete_old_mp4_files();
-	});
-	res.status(200).json({
-		jobs: g_job_tests
-	});
+	g_job_test = req.body;
+	g_job_test.uuid = uuidv4();
+	job_dispatch(g_job_test);
+	delete_old_mp4_files();
+	res.status(200).json(g_job_test);
 });
 
 router.get('/api/transcode/job', function(req, res, next) {
@@ -136,24 +129,20 @@ router.get('/api/transcode/job_meshub', function(req, res, next) {
 	let meshub_ip = req.clientIp;
 	console.log(`GET job_meshub from ${meshub_ip}`);
 	g_meshubs_healthcheck[meshub_ip] = {timestamp: new Date()};
-	let job_array = [];
+	let job_json = {};
 
 	let meshubId = find_meshub_id_from_request(req);
 
-	g_job_tests.forEach(g_job_test => {
-		if (g_job_test && g_job_test.splitJobs && g_job_test.splitJobs.length > 0 ) {
-			for (let i=0;i<g_job_test.splitJobs.length;i++) {
-				let splitJob = g_job_test.splitJobs[i];
-				if (splitJob.meshubId == meshubId && splitJob.progress == 0) {
-					job_array.push(splitJob);
-				}
+	if (g_job_test && g_job_test.splitJobs && g_job_test.splitJobs.length > 0 ) {
+		for (let i=0;i<g_job_test.splitJobs.length;i++) {
+			let splitJob = g_job_test.splitJobs[i];
+			if (splitJob.meshubId == meshubId && splitJob.progress == 0) {
+				job_json = splitJob;
 			}
 		}
-	})
+	}
 	//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
-	return res.status(200).json({
-		jobs: job_array
-	});
+	return res.status(200).json(job_json);
 });
 
 router.post('/api/transcode/job_meshub_progress', function (req,res,next) {
@@ -194,7 +183,7 @@ router.post('/api/transcode/upload', function(req, res,next) {
 	  return res.status(400).send('No files were uploaded.');
 	}
   
-	// The name of the input field (i.e. "sampleFi｀le") is used to retrieve the uploaded file
+	// The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
 	let sampleFile = req.files.sampleFile;
   
 	// Use the mv() method to place the file somewhere on your server
