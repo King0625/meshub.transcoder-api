@@ -269,7 +269,7 @@ router.post('/api/transcode/remove_mp4', function (req, res, next) {
 	if (fileName === parsedFileName) {
 		const stdout = execFileSync(cmd, [parsedFileName]);
 		console.log(`Finish deleting ${parsedFileName}.mp4: ${stdout}`);
-		return res.status(204).json({
+		return res.status(200).json({
 			"error": false,
 			"message": `Delete '${parsedFileName}.mp4' successfully.`
 		});
