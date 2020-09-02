@@ -153,7 +153,8 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		const first_splitJob = await SplitJob.findOne({
 			"meshubId": meshubId,
 			"progress": { "$ne": 100 }
-		})
+		}).sort({ updatedAt: -1 });
+
 		const job_json = (first_splitJob != null && first_splitJob.progress == 0) ? first_splitJob : {};
 		//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
 		return res.status(200).json(job_json);
