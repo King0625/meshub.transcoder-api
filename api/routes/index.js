@@ -269,9 +269,15 @@ router.post('/api/transcode/remove_mp4', function (req, res, next) {
 	if (fileName === parsedFileName) {
 		const stdout = execFileSync(cmd, [parsedFileName]);
 		console.log(`Finish deleting ${pa}.mp4: ${stdout}`);
-		return res.status(204).json({ "message": `Delete ${parsedFileName}.mp4 successfully.` });
+		return res.status(204).json({
+			"error": false,
+			"message": `Delete '${parsedFileName}.mp4' successfully.`
+		});
 	}
-	res.status(400).json({ "error": "FileName should not contain special characters." });
+	res.status(400).json({
+		"error": true,
+		"message": "FileName should not contain special characters."
+	});
 })
 
 module.exports = router;
