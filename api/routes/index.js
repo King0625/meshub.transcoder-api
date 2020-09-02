@@ -91,7 +91,7 @@ function find_meshub_id_from_request(req) {
 //console.log(`test job:\n ${util.inspect(g_job_test)}`);
 
 router.get('/api/transcode/job_details', async function (req, res, next) {
-	const jobs = await Job.find({}).limit(5).populate('splitJobs');
+	const jobs = await Job.find({}).sort({ updatedAt: -1 }).limit(5).populate('splitJobs');
 	res.status(200).json(jobs);
 })
 
