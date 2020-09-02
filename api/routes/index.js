@@ -102,10 +102,10 @@ router.post('/api/transcode/job', function (req, res, next) {
 	(async function () {
 		await refresh_meshub_status();
 
+		delete_old_mp4_files();
 		for (g_job_test of g_job_tests) {
 			g_job_test.uuid = uuidv4();
 			await job_dispatch(g_job_test);
-			delete_old_mp4_files();
 		}
 		const insertMany = await Job.insertMany(g_job_tests);
 
