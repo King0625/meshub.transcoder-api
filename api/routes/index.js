@@ -250,7 +250,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			}
 
 			if (all_split_jobs_uploaded) {
-				let result_mp4 = execute_concat();
+				let result_mp4 = execute_concat(job_uuid);
 				job.overall_progress = 100;
 				job.result_mp4 = `https://torii-demo.meshub.io/${result_mp4}`;
 				await job.save();
@@ -262,12 +262,12 @@ router.post('/api/transcode/upload', function (req, res, next) {
 
 module.exports = router;
 
-function execute_concat() {
+function execute_concat(uuid) {
 	const execFileSync = require('child_process').execFileSync;
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${Math.random().toString(36).substring(7)}.mp4`;
-	const stdout = execFileSync(cmd, [output_file_name]);
+	const stdout = execFileSync(cmd, [uuid, output_file_name]);
 	console.log(`concat finished: ${stdout}`);
 	return output_file_name;
 }
