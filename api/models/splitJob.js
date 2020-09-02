@@ -51,6 +51,11 @@ const splitJobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  in_progress: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   uploadFileName: {
     type: String,
     required: true,
