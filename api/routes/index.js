@@ -260,6 +260,20 @@ router.post('/api/transcode/upload', function (req, res, next) {
 	});
 });
 
+router.post('/api/transcode/remove_mp4', function (req, res, next) {
+	const execFileSync = require('child_process').execFileSync;
+	let cmd = `${__dirname}/remove_mp4.sh`;
+	const fileName = req.body.fileName;
+	// Filter special characters
+	const parsedFileName = fileName.replace(/[^0-9A-Za-z]+/g, '');
+	if (fileName === parsedFileName) {
+		const stdout = execFileSync(cmd, [parsedFileName]);
+		console.log(`Finish deleting ${pa}.mp4: ${stdout}`);
+		return res.status(204).json({ "message": `Delete ${parsedFileName}.mp4 successfully.` });
+	}
+	res.status(400).json({ "error": "FileName should not contain special characters." });
+})
+
 module.exports = router;
 
 function execute_concat(uuid) {
