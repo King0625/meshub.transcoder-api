@@ -90,6 +90,11 @@ function find_meshub_id_from_request(req) {
 //job_dispatch(g_job_test);
 //console.log(`test job:\n ${util.inspect(g_job_test)}`);
 
+router.get('/api/transcode/job_details', async function (req, res, next) {
+	const jobs = await Job.find({}).populate('splitJobs');
+	res.status(200).json(jobs);
+})
+
 router.post('/api/transcode/job', function (req, res, next) {
 	console.log(util.inspect(req.body));
 	const g_job_tests = req.body.data;
