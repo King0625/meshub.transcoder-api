@@ -153,9 +153,14 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		const first_splitJob = await SplitJob.findOne({
 			"meshubId": meshubId,
 			"progress": { "$ne": 100 }
-		})
-		const job_json = (first_splitJob != null && first_splitJob.progress == 0) ? first_splitJob : {};
-		//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
+		});
+
+		let job_json = {};
+		if (first_splitJob != null && first_splitJob.progress == 0) {
+			job_json = first_splitJob;
+			await first_splitJob.update({ in_progress: true });
+			//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
+		}
 		return res.status(200).json(job_json);
 
 	})();
@@ -182,7 +187,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 		let overall_progress = 0;
 		for (let i = 0; i < splitJobs.length; i++) {
 			let splitJob = splitJobs[i];
-			if (splitJob.meshubId == meshubId) {
+			if (splitJob.meshubId == meshubId && splitJob.in_progress) {
 				splitJob.progress = req.body.progress;
 			}
 			overall_progress += splitJob.progress;
