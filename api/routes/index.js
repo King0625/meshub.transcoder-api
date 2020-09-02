@@ -35,7 +35,7 @@ router.get('/api/hello/reset', async function (req, res, next) {
 async function job_dispatch(job) {
 	job.meshubNumbers = parseInt(job.meshubNumbers);
 	let meshubNumbers = job.meshubNumbers;
-	let segmentLength = 80 / meshubNumbers;
+	let segmentLength = Math.ceil(80 / meshubNumbers);
 	let paramSeekBeginSec = 0;
 	let paramSeekEndSec = segmentLength;
 
@@ -59,7 +59,7 @@ async function job_dispatch(job) {
 		job_slice.uploadFileName = `${job.uuid}-${i}.mp4`;
 		job.splitJobs.push(job_slice);
 		paramSeekBeginSec += segmentLength;
-		paramSeekEndSec += segmentLength;
+		paramSeekEndSec = (i == meshubNumbers - 2) ? 80 : paramSeekEndSec + segmentLength;
 		console.log(`pushed job_slice ${i}/${meshubNumbers}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
 	}
 
