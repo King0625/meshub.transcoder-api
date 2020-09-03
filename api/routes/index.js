@@ -32,17 +32,19 @@ router.get('/api/hello/reset', async function (req, res, next) {
 	return res.status(200).json(await Meshub.find({}));
 });
 
-async function job_dispatch(job) {
-	job.meshubNumbers = parseInt(job.meshubNumbers);
+async function job_dispatch(job, alive_meshubs) {
+	job.meshubNumbers = parseInt(job.meshubNumbers) == 0 ? alive_meshubs.length : parseInt(job.meshubNumbers);
+
+	await Job.create(job);
+	console.log(`Insert one job...`);
+	console.log(JSON.stringify(job, '', '\t'));
+
 	let meshubNumbers = job.meshubNumbers;
 	let segmentLength = Math.ceil(80 / meshubNumbers);
 	let paramSeekBeginSec = 0;
 	let paramSeekEndSec = segmentLength;
 
-	job.splitJobs = [];
-	job.overall_progress = 0;
-	const alive_meshubs = await Meshub.find({ dead: false });
-
+	const splitJobs = [];
 	for (let i = 0; i < meshubNumbers; i++) {
 		// To prevent if meshubNumber is greater than the number of alive meshubs
 		let assigned = i % alive_meshubs.length;
@@ -51,20 +53,19 @@ async function job_dispatch(job) {
 		Object.assign(job_slice, job);
 		delete job_slice.meshubNumbers;
 		delete job_slice.overall_progress;
-		delete job_slice.splitJobs;
 		job_slice.paramSeekBeginSec = paramSeekBeginSec;
 		job_slice.paramSeekEndSec = paramSeekEndSec;
 		job_slice.meshubId = alive_meshubs[assigned].ip_address;
 		job_slice.progress = 0;
 		job_slice.uploadFileName = `${job.uuid}-${i}.mp4`;
-		job.splitJobs.push(job_slice);
+		splitJobs.push(job_slice);
 		paramSeekBeginSec += segmentLength;
 		paramSeekEndSec = (i == meshubNumbers - 2) ? 80 : paramSeekEndSec + segmentLength;
 		console.log(`pushed job_slice ${i}/${meshubNumbers}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
 	}
 
 	(async function () {
-		const insertMany = await SplitJob.insertMany(job.splitJobs);
+		const insertMany = await SplitJob.insertMany(splitJobs);
 		console.log(`Bulk insert split jobs...`);
 		console.log(JSON.stringify(insertMany, '', '\t'));
 	})();
@@ -95,27 +96,36 @@ router.get('/api/transcode/job_details', async function (req, res, next) {
 	res.status(200).json(jobs);
 })
 
-router.post('/api/transcode/job', function (req, res, next) {
+router.post('/api/transcode/job', async function (req, res, next) {
 	console.log(util.inspect(req.body));
-	const g_job_tests = req.body.data;
 
-	(async function () {
-		await refresh_meshub_status();
+	const meshubs_with_new_status = await refresh_meshub_status();
+	delete_old_mp4_files();
 
-		delete_old_mp4_files();
-		for (g_job_test of g_job_tests) {
-			g_job_test.uuid = uuidv4();
-			await job_dispatch(g_job_test);
-		}
-		const insertMany = await Job.insertMany(g_job_tests);
+	const g_job_data = req.body;
+	const g_jobs = req.body.resolutions;
 
-		console.log(`Bulk insert jobs...`);
-		console.log(JSON.stringify(insertMany, '', '\t'));
+	const alive_meshubs = meshubs_with_new_status.filter(meshub => !meshub.dead);
 
-		res.status(200).json({
-			jobs: g_job_tests
+	if (alive_meshubs.length == 0) {
+		console.log("Emergency: No meshubs alive!!!!");
+		return res.status(200).json({
+			message: "No meshubs alive now!!!!"
 		});
-	})();
+	}
+
+	for (g_job of g_jobs) {
+		g_job.uuid = uuidv4();
+		const job_info = {};
+		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
+		await job_dispatch(job_info, alive_meshubs);
+	}
+
+	res.status(200).json({
+		sourceUrl: g_job_data.transcode_job.sourceUrl,
+		jobs: g_jobs
+	});
+
 });
 
 router.get('/api/transcode/job', function (req, res, next) {
