@@ -45,6 +45,7 @@ const jobSchema = new mongoose.Schema({
     trim: true
   }
 }, {
+  id: false,
   timestamps: true,
   toObject: { virtuals: true },
   toJSON: { virtuals: true }

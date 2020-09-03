@@ -72,7 +72,7 @@ async function job_dispatch(job, alive_meshubs) {
 }
 
 async function job_find(job_uuid) {
-	const g_job_test = await Job.findOne({ uuid: job_uuid }).populate("splitJobs");
+	const g_job_test = await Job.findOne({ uuid: job_uuid }).populate("splitJobs", "-_id -__v -in_progress -meshubId -createdAt -updatedAt");
 	return g_job_test;
 }
 
@@ -135,9 +135,16 @@ router.get('/api/transcode/job', function (req, res, next) {
 	}
 	else {
 		(async function () {
-			let job = await job_find(job_uuid);
-			if (job == null) return res.status(404).end();
-			else return res.status(200).json(job);
+			let job = await (await job_find(job_uuid)).toJSON();
+			if (job == null) {
+				return res.status(404).end();
+			} else {
+				delete job._id;
+				delete job.__v;
+				delete job.createdAt;
+				delete job.updatedAt;
+				return res.status(200).json(job);
+			}
 		})();
 	}
 });
@@ -167,8 +174,14 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 
 		let job_json = {};
 		if (first_splitJob != null && first_splitJob.progress == 0) {
-			job_json = first_splitJob;
-			await first_splitJob.update({ in_progress: true });
+			first_splitJob.in_progress = true;
+			await first_splitJob.save();
+			job_json = first_splitJob.toJSON();
+			delete job_json.in_progress;
+			delete job_json._id;
+			delete job_json.__v;
+			delete job_json.createdAt;
+			delete job_json.updatedAt;
 			//console.log(`dispatched splitJob: ${util.inspect(job_json)}`);	
 		}
 		return res.status(200).json(job_json);
