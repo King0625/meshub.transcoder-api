@@ -151,7 +151,8 @@ router.get('/api/transcode/job', function (req, res, next) {
 
 router.get('/api/transcode/job_meshub', function (req, res, next) {
 
-	let meshub_ip = req.clientIp;
+	// let meshub_ip = req.clientIp;
+	let meshub_ip = req.query.clientIp;
 	console.log(`GET job_meshub from ${meshub_ip}`);
 
 	const meshub_data = {
@@ -159,7 +160,8 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		timestamp: new Date()
 	};
 
-	let meshubId = find_meshub_id_from_request(req);
+	// let meshubId = find_meshub_id_from_request(req);
+	let meshubId = meshub_ip;
 
 	(async function () {
 		await Meshub.updateOne({ ip_address: meshub_data.ip_address }, meshub_data, {
@@ -283,23 +285,32 @@ router.post('/api/transcode/upload', function (req, res, next) {
 	});
 });
 
-router.post('/api/transcode/remove_mp4', function (req, res, next) {
+router.post('/api/transcode/remove_mp4', async function (req, res, next) {
 	const execFileSync = require('child_process').execFileSync;
 	let cmd = `${__dirname}/remove_mp4.sh`;
-	const fileName = req.body.fileName;
-	// Filter special characters
-	const parsedFileName = fileName.replace(/[^0-9A-Za-z]+/g, '');
-	if (fileName === parsedFileName) {
+	const uuid = req.body.uuid;
+	const finishedJob = await Job.findOne({
+		uuid: uuid,
+		result_mp4: { $ne: undefined }
+	})
+
+	if (finishedJob) {
+		const fileName = finishedJob.result_mp4;
+		console.log(fileName);
+		const parsedFileName = fileName.match(/https:\/\/torii-demo\.meshub\.io\/([0-9A-Za-z]+)\.mp4/)[1];
+		console.log(parsedFileName);
 		const stdout = execFileSync(cmd, [parsedFileName]);
 		console.log(`Finish deleting ${parsedFileName}.mp4: ${stdout}`);
 		return res.status(200).json({
 			"error": false,
+			"uuid": uuid,
 			"message": `Delete '${parsedFileName}.mp4' successfully.`
 		});
 	}
-	res.status(400).json({
+
+	res.status(404).json({
 		"error": true,
-		"message": "FileName should not contain special characters."
+		"message": "uuid not found"
 	});
 })
 
