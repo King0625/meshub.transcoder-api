@@ -11,10 +11,13 @@ const jobSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  paramCrf: {
-    type: String,
+  paramBitrate: {
+    type: Number,
     required: true,
-    trim: true
+  },
+  paramCrf: {
+    type: Number,
+    required: true,
   },
   paramProfile: {
     type: String,
@@ -29,11 +32,6 @@ const jobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  resolution: {
-    type: String,
-    required: true,
-    trim: true
-  },
   meshubNumbers: {
     type: Number,
     required: true
@@ -46,8 +44,8 @@ const jobSchema = new mongoose.Schema({
     type: String,
     trim: true
   }
-},{
-  timestamps: true, 
+}, {
+  timestamps: true,
   toObject: { virtuals: true },
   toJSON: { virtuals: true }
 });

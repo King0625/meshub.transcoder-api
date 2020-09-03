@@ -6,10 +6,13 @@ const splitJobSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  paramCrf: {
-    type: String,
+  paramBitrate: {
+    type: Number,
     required: true,
-    trim: true
+  },
+  paramCrf: {
+    type: Number,
+    required: true,
   },
   paramProfile: {
     type: String,
@@ -23,11 +26,6 @@ const splitJobSchema = new mongoose.Schema({
   paramResolutionHeight: {
     type: Number,
     required: true
-  },
-  resolution: {
-    type: String,
-    required: true,
-    trim: true
   },
   uuid: {
     type: String,
