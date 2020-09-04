@@ -6,6 +6,7 @@ var logger = require('morgan');
 require('./db/mongoose');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var accountRouter = require('./routes/account');
 const requestIp = require('request-ip');
 const fileUpload = require('express-fileupload');
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(requestIp.mw());
 app.use('/', indexRouter);
+app.use('/api/account', accountRouter);
 app.use('/users', usersRouter);
 app.set('json spaces', 2);
 
