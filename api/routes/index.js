@@ -282,7 +282,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 	});
 });
 
-router.post('/api/transcode/remove_mp4', async function (req, res, next) {
+router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req, res, next) {
 	const execFileSync = require('child_process').execFileSync;
 	let cmd = `${__dirname}/remove_mp4.sh`;
 	const uuid = req.body.uuid;
