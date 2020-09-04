@@ -131,23 +131,19 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 
 router.get('/api/transcode/job', accountMiddleware, function (req, res, next) {
 	let job_uuid = req.query.uuid;
-	if (job_uuid == null) {
-		return res.status(400).json({ error: `job uuid not found in request body` });
-	}
-	else {
-		(async function () {
-			let job = await (await job_find(job_uuid)).toJSON();
-			if (job == null) {
-				return res.status(404).end();
-			} else {
-				delete job._id;
-				delete job.__v;
-				delete job.createdAt;
-				delete job.updatedAt;
-				return res.status(200).json(job);
-			}
-		})();
-	}
+	(async function () {
+		let job = await job_find(job_uuid);
+		if (job == null) {
+			return res.status(404).json({ error: `job of this uuid not found` });
+		} else {
+			let job_json = await job.toJSON();
+			delete job_json._id;
+			delete job_json.__v;
+			delete job_json.createdAt;
+			delete job_json.updatedAt;
+			return res.status(200).json(job_json);
+		}
+	})();
 });
 
 router.get('/api/transcode/job_meshub', function (req, res, next) {
