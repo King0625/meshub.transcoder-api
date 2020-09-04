@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-
+const { adminMiddleware } = require('../middleware/auth');
 const Account = require('../models/account');
 
 function randomString() {
@@ -13,6 +13,8 @@ function randomString() {
   }
   return randomstring;
 }
+
+router.use(adminMiddleware);
 
 router.get('/', (req, res, next) => {
   Account.find({}).select('-_id -__v')

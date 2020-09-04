@@ -8,6 +8,7 @@ const os = require('os');
 const Job = require('../models/job');
 const Meshub = require('../models/meshub');
 const SplitJob = require('../models/splitJob');
+const { accountMiddleware } = require('../middleware/auth');
 
 async function refresh_meshub_status() {
 	const meshubs = await Meshub.find({});
@@ -96,7 +97,7 @@ router.get('/api/transcode/job_details', async function (req, res, next) {
 	res.status(200).json(jobs);
 })
 
-router.post('/api/transcode/job', async function (req, res, next) {
+router.post('/api/transcode/job', accountMiddleware, async function (req, res, next) {
 	console.log(util.inspect(req.body));
 
 	const meshubs_with_new_status = await refresh_meshub_status();
@@ -128,7 +129,7 @@ router.post('/api/transcode/job', async function (req, res, next) {
 
 });
 
-router.get('/api/transcode/job', function (req, res, next) {
+router.get('/api/transcode/job', accountMiddleware, function (req, res, next) {
 	let job_uuid = req.query.uuid;
 	if (job_uuid == null) {
 		return res.status(400).json({ error: `job uuid not found in request body` });
