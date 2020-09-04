@@ -29,7 +29,7 @@ router.get('/', (req, res, next) => {
 })
 
 router.get('/:account', (req, res, next) => {
-  Account.findOne({ account: req.params.account })
+  Account.findOne({ account: req.params.account }).select('-_id -__v')
     .then(account => {
       console.log(account);
       res.status(200).json({ account });
