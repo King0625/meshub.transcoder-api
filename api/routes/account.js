@@ -48,7 +48,10 @@ router.post('/:account', (req, res, next) => {
 
   newAccount.save()
     .then(account => {
-      res.status(201).json(account);
+      res.status(201).json({
+        message: "Account created successfully",
+        account
+      });
     })
     .catch(err => {
       res.status(409).json({ message: "Account already in use!" });
