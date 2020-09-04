@@ -18,7 +18,7 @@ router.get('/', (req, res, next) => {
   Account.find({}).select('-_id -__v')
     .then(accounts => {
       res.status(200).json({ accounts });
-      console.log(result);
+      console.log(accounts);
     })
     .catch(err => {
       res.status(500).json({ "message": "Server error." });
@@ -29,7 +29,7 @@ router.get('/', (req, res, next) => {
 router.get('/:account', (req, res, next) => {
   Account.findOne({ account: req.params.account })
     .then(account => {
-      console.log(result);
+      console.log(account);
       res.status(200).json({ account });
     })
     .catch(err => {
@@ -45,8 +45,8 @@ router.post('/:account', (req, res, next) => {
   });
 
   newAccount.save()
-    .then(result => {
-      res.status(201).json(result);
+    .then(account => {
+      res.status(201).json(account);
     })
     .catch(err => {
       res.status(409).json({ message: "Account already in use!" });
@@ -54,7 +54,7 @@ router.post('/:account', (req, res, next) => {
 })
 
 router.delete('/:account', (req, res, next) => {
-  Account.findOneAndDelete({ account: req.params.account }, (err, res) => {
+  Account.findOneAndDelete({ account: req.params.account }, err => {
     if (err) return res.status(404).end();
     res.status(200).json({ "message": "Account deleted successfully." });
   });
