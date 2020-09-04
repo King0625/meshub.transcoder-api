@@ -130,19 +130,22 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 });
 
 router.get('/api/transcode/job', accountMiddleware, function (req, res, next) {
-	let job_uuid = req.query.uuid;
+	let job_uuids = req.query.uuids;
 	(async function () {
-		let job = await job_find(job_uuid);
-		if (job == null) {
-			return res.status(404).json({ error: `job of this uuid not found` });
-		} else {
-			let job_json = await job.toJSON();
-			delete job_json._id;
-			delete job_json.__v;
-			delete job_json.createdAt;
-			delete job_json.updatedAt;
-			return res.status(200).json(job_json);
+		const job_jsons = [];
+		for (job_uuid of job_uuids) {
+			let job = await job_find(job_uuid);
+			let job_json = {};
+			if (job != null) {
+				job_json = await job.toJSON();
+				delete job_json._id;
+				delete job_json.__v;
+				delete job_json.createdAt;
+				delete job_json.updatedAt;
+				job_jsons.push(job_json);
+			}
 		}
+		return res.status(200).json({ jobs: job_jsons });
 	})();
 });
 
