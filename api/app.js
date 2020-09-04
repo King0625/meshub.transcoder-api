@@ -21,9 +21,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(requestIp.mw());
-app.use('/', indexRouter);
-app.use('/api/account', accountRouter);
-app.use('/users', usersRouter);
+app.use('/v2', indexRouter);
+app.use('/v2/api/account', accountRouter);
+app.use('/v2/users', usersRouter);
 app.set('json spaces', 2);
 
 module.exports = app;
