@@ -59,6 +59,8 @@ async function job_dispatch(job, alive_meshubs) {
 		job_slice.meshubId = alive_meshubs[assigned].ip_address;
 		job_slice.progress = 0;
 		job_slice.uploadFileName = `${job.uuid}-${i}.mp4`;
+		alive_meshubs[i].assigned = i;
+		alive_meshubs[i].save();
 		splitJobs.push(job_slice);
 		paramSeekBeginSec += segmentLength;
 		paramSeekEndSec = (i == meshubNumbers - 2) ? 80 : paramSeekEndSec + segmentLength;
