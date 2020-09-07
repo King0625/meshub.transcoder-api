@@ -153,8 +153,7 @@ router.get('/api/transcode/job', accountMiddleware, function (req, res, next) {
 
 router.get('/api/transcode/job_meshub', function (req, res, next) {
 
-	// let meshub_ip = req.clientIp;
-	let meshub_ip = req.query.clientIp;
+	let meshub_ip = req.clientIp;
 	console.log(`GET job_meshub from ${meshub_ip}`);
 
 	const meshub_data = {
@@ -162,8 +161,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		timestamp: new Date()
 	};
 
-	// let meshubId = find_meshub_id_from_request(req);
-	let meshubId = meshub_ip;
+	let meshubId = find_meshub_id_from_request(req);
 
 	(async function () {
 		await Meshub.updateOne({ ip_address: meshub_data.ip_address }, meshub_data, {
