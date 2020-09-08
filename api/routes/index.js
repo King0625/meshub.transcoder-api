@@ -281,7 +281,7 @@ router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req,
 	if (finishedJob) {
 		const fileName = finishedJob.result_mp4;
 		console.log(fileName);
-		const parsedFileName = fileName.match(/https:\/\/torii-demo\.meshub\.io\/([0-9A-Za-z]+)\.mp4/)[1];
+		const parsedFileName = fileName.match(/https:\/\/torii-demo\.meshub\.io\/v2\/([0-9A-Za-z]+)\.mp4/)[1];
 		console.log(parsedFileName);
 		const stdout = execFileSync(cmd, [parsedFileName]);
 		console.log(`Finish deleting ${parsedFileName}.mp4: ${stdout}`);
