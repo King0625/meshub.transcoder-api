@@ -261,7 +261,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			if (all_split_jobs_uploaded) {
 				let result_mp4 = execute_concat(job_uuid);
 				job.overall_progress = 100;
-				job.result_mp4 = `https://torii-demo.meshub.io/${result_mp4}`;
+				job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
 				await job.save();
 				console.log(`upload: result_mp4=${job.result_mp4}`);
 			}
