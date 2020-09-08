@@ -22,17 +22,6 @@ async function refresh_meshub_status() {
 	return meshubs;
 }
 
-/* GET home page. */
-router.get('/api/hello', async function (req, res, next) {
-	const meshubs = await refresh_meshub_status();
-	return res.status(200).json(meshubs);
-});
-
-router.get('/api/hello/reset', async function (req, res, next) {
-	await Meshub.remove({});
-	return res.status(200).json(await Meshub.find({}));
-});
-
 async function job_dispatch(job, alive_meshubs) {
 	job.meshubNumbers = parseInt(job.meshubNumbers) == 0 ? alive_meshubs.length : parseInt(job.meshubNumbers);
 
@@ -93,11 +82,6 @@ function find_meshub_id_from_request(req) {
 
 //job_dispatch(g_job_test);
 //console.log(`test job:\n ${util.inspect(g_job_test)}`);
-
-router.get('/api/transcode/job_details', async function (req, res, next) {
-	const jobs = await Job.find({}).sort({ updatedAt: -1 }).limit(5).populate('splitJobs');
-	res.status(200).json(jobs);
-})
 
 router.post('/api/transcode/job', accountMiddleware, async function (req, res, next) {
 	console.log(util.inspect(req.body));
