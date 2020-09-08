@@ -4,11 +4,16 @@ import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 
-  const routes = [
+const routes = [
   {
     path: '/v2/',
     name: 'Home',
     component: Home
+  },
+  {
+    name: 'anyUrl',
+    path: '/v2/*',
+    redirect: { path: '/v2/' }
   }
 ]
 
