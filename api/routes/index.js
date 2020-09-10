@@ -266,7 +266,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			}
 
 			if (all_split_jobs_uploaded) {
-				job.status = job.status = "uploading" ? "merging" : job.status;
+				job.status = job.status == "uploading" ? "merging" : job.status;
 				await job.save();
 				let result_mp4 = execute_concat(job_uuid);
 				job.overall_progress = 100;
