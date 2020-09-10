@@ -24,7 +24,7 @@ exports.adminMiddleware = (req, res, next) => {
     .then(account => {
       if (account == null || account != null && account.account != 'admin') {
         return res.status(403).json({
-          message: "Request forbidden"
+          message: "invalid token"
         });
       }
       account.time_use = new Date();
