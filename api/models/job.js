@@ -40,6 +40,12 @@ const jobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  status: {
+    type: String,
+    required: true,
+    trim: true,
+    default: "pending"
+  },
   result_mp4: {
     type: String,
     trim: true

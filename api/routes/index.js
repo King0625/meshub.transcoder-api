@@ -198,6 +198,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 			let splitJob = splitJobs[i];
 			if (splitJob.meshubId == meshubId && splitJob.in_progress) {
 				splitJob.progress = req.body.progress;
+				job.status = job.status == "pending" ? "transcoding" : job.status;
 			}
 			overall_progress += splitJob.progress;
 			await splitJob.save();
@@ -206,6 +207,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 		job.overall_progress = overall_progress / job.meshubNumbers;
 		if (job.overall_progress == 100) {
 			job.overall_progress = 99;
+			job.status = job.status == "transcoding" ? "uploading" : job.status;
 		}
 
 		await job.save();
@@ -259,9 +261,12 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			}
 
 			if (all_split_jobs_uploaded) {
+				job.status = job.status = "uploading" ? "merging" : job.status;
+				await job.save();
 				let result_mp4 = execute_concat(job_uuid);
 				job.overall_progress = 100;
 				job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
+				job.status = "finished";
 				await job.save();
 				console.log(`upload: result_mp4=${job.result_mp4}`);
 			}
