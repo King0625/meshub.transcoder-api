@@ -193,18 +193,22 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 
 		let meshubId = find_meshub_id_from_request(req);
 		let splitJobs = await SplitJob.find({ uuid: job_uuid });
-		let overall_progress = 0;
 		for (let i = 0; i < splitJobs.length; i++) {
 			let splitJob = splitJobs[i];
 			if (splitJob.meshubId == meshubId && splitJob.in_progress) {
 				splitJob.progress = req.body.progress;
 				job.status = job.status == "pending" ? "transcoding" : job.status;
 			}
-			overall_progress += splitJob.progress;
 			await splitJob.save();
 		}
 
-		job.overall_progress = overall_progress / job.meshubNumbers;
+		const progressData = await SplitJob.aggregate([
+			{ $match: { uuid: job_uuid } },
+			{ $group: { _id: null, average: { $avg: "$progress" } } },
+		]).exec();
+
+		job.overall_progress = progressData[0].average;
+
 		if (job.overall_progress == 100) {
 			job.overall_progress = 99;
 			job.status = job.status == "transcoding" ? "uploading" : job.status;
