@@ -199,6 +199,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 				splitJob.progress = req.body.progress;
 				job.status = job.status == "pending" ? "transcoding" : job.status;
 			}
+			if (splitJob.progress == 100) splitJob.in_progress = false;
 			await splitJob.save();
 		}
 
