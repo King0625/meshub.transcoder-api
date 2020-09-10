@@ -193,7 +193,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 
 		let meshubId = find_meshub_id_from_request(req);
 		let splitJobs = await SplitJob.find({ uuid: job_uuid });
-		let overall_progress = 0;
+		let overall_progress = job.overall_progress;
 		for (let i = 0; i < splitJobs.length; i++) {
 			let splitJob = splitJobs[i];
 			if (splitJob.meshubId == meshubId && splitJob.in_progress) {
