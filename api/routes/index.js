@@ -268,7 +268,9 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			if (all_split_jobs_uploaded) {
 				job.status = job.status == "uploading" ? "merging" : job.status;
 				await job.save();
+				console.time("Merging time: ");
 				let result_mp4 = execute_concat(job_uuid);
+				console.timeEnd("Merging time: ");
 				job.overall_progress = 100;
 				job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
 				job.status = "finished";
