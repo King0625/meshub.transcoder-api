@@ -268,14 +268,13 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			if (all_split_jobs_uploaded) {
 				job.status = job.status == "uploading" ? "merging" : job.status;
 				await job.save();
-				console.time("Merging time: ");
-				let result_mp4 = execute_concat(job_uuid);
-				console.timeEnd("Merging time: ");
-				job.overall_progress = 100;
-				job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
-				job.status = "finished";
-				await job.save();
-				console.log(`upload: result_mp4=${job.result_mp4}`);
+				execute_concat(job_uuid, (result_mp4) => {
+					job.overall_progress = 100;
+					job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
+					job.status = "finished";
+					job.save();
+					console.log(`upload: result_mp4=${job.result_mp4}`);
+				})
 			}
 		})();
 	});
@@ -312,14 +311,15 @@ router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req,
 
 module.exports = router;
 
-function execute_concat(uuid) {
-	const execFileSync = require('child_process').execFileSync;
+function execute_concat(uuid, cb) {
+	const execFile = require('child_process').execFile;
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${Math.random().toString(36).substring(7)}.mp4`;
-	const stdout = execFileSync(cmd, [uuid, output_file_name]);
-	console.log(`concat finished: ${stdout}`);
-	return output_file_name;
+	execFile(cmd, [uuid, output_file_name], (err, stdout, stderr) => {
+		console.log(`concat finished: ${stdout}`);
+		return cb(output_file_name);
+	})
 }
 
 function find_job_uuid_from_slice_filename(str) {
