@@ -13,16 +13,14 @@ const { accountMiddleware } = require('../middleware/auth');
 async function refresh_meshub_status() {
 	const meshubs = await Meshub.find({});
 	for (meshub of meshubs) {
-		if (Date.now() - meshub.timestamp.getTime() > 60000) {
-			meshub.dead = true;
-		}
+		meshub.dead = (Date.now() - meshub.timestamp.getTime() > 60000);
 		meshub.time = meshub.timestamp.toLocaleString('en-US', { timeZone: 'Asia/Taipei' })
 		await meshub.save();
 	}
 	return meshubs;
 }
 
-async function job_dispatch(job, alive_meshubs) {
+async function job_dispatch(job, duration, alive_meshubs) {
 	job.meshubNumbers = parseInt(job.meshubNumbers) == 0 ? alive_meshubs.length : parseInt(job.meshubNumbers);
 
 	await Job.create(job);
@@ -30,7 +28,7 @@ async function job_dispatch(job, alive_meshubs) {
 	console.log(JSON.stringify(job, '', '\t'));
 
 	let meshubNumbers = job.meshubNumbers;
-	let segmentLength = Math.ceil(80 / meshubNumbers);
+	let segmentLength = Math.ceil(duration / meshubNumbers);
 	let paramSeekBeginSec = 0;
 	let paramSeekEndSec = segmentLength;
 
@@ -52,7 +50,7 @@ async function job_dispatch(job, alive_meshubs) {
 		alive_meshubs[assigned].save();
 		splitJobs.push(job_slice);
 		paramSeekBeginSec += segmentLength;
-		paramSeekEndSec = (i == meshubNumbers - 2) ? 80 : paramSeekEndSec + segmentLength;
+		paramSeekEndSec = (i == meshubNumbers - 2) ? Math.ceil(duration) : paramSeekEndSec + segmentLength;
 		console.log(`pushed job_slice ${i}/${meshubNumbers}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
 	}
 
@@ -105,7 +103,15 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 		g_job.uuid = uuidv4();
 		const job_info = {};
 		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
-		await job_dispatch(job_info, alive_meshubs);
+
+	        try {
+			duration = execute_probe_duration(job_info.sourceUrl);
+        		console.log(`probe duration: ${duration}`);
+		} catch (error) {
+			res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}`});
+                	return;
+	        }
+		await job_dispatch(job_info, duration, alive_meshubs);
 	}
 
 	res.status(200).json({
@@ -159,7 +165,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		});
 
 		let job_json = {};
-		if (first_splitJob != null && first_splitJob.progress == 0) {
+		if (first_splitJob != null) {
 			first_splitJob.in_progress = true;
 			await first_splitJob.save();
 			job_json = first_splitJob.toJSON();
@@ -197,6 +203,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 			let splitJob = splitJobs[i];
 			if (splitJob.meshubId == meshubId && splitJob.in_progress) {
 				splitJob.progress = req.body.progress;
+				splitJob.updatedAt = Date.now();
 				job.status = job.status == "pending" ? "transcoding" : job.status;
 			}
 			if (splitJob.progress == 100) splitJob.in_progress = false;
@@ -209,6 +216,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 		]).exec();
 
 		job.overall_progress = progressData[0].average;
+		job.updatedAt = Date.now();
 
 		if (job.overall_progress == 100) {
 			job.overall_progress = 99;
@@ -320,6 +328,13 @@ function execute_concat(uuid, cb) {
 		console.log(`concat finished: ${stdout}`);
 		return cb(output_file_name);
 	})
+}
+
+function execute_probe_duration(url) {
+	const execFileSync = require('child_process').execFileSync;
+	let cmd = `${__dirname}/probe_duration.sh`;
+	duration = execFileSync(cmd, [url]);
+	return duration;
 }
 
 function find_job_uuid_from_slice_filename(str) {
