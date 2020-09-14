@@ -66,13 +66,6 @@ async function job_find(job_uuid) {
 	return g_job_test;
 }
 
-
-function delete_old_mp4_files() {
-	const child_process = require('child_process');
-	let cmd = 'rm -f routes/*.mp4';
-	let stdout = child_process.execSync(cmd);
-	console.log(`delete_mp4:${stdout.toString()}`);
-}
 function find_meshub_id_from_request(req) {
 	let meshubId = req.clientIp;
 	return meshubId;
@@ -85,7 +78,6 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 	console.log(util.inspect(req.body));
 
 	const meshubs_with_new_status = await refresh_meshub_status();
-	delete_old_mp4_files();
 
 	const g_job_data = req.body;
 	const g_jobs = req.body.resolutions;
@@ -281,6 +273,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 					job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
 					job.status = "finished";
 					job.save();
+					delete_old_mp4_files(job_uuid);
 					console.log(`upload: result_mp4=${job.result_mp4}`);
 				})
 			}
@@ -318,6 +311,13 @@ router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req,
 })
 
 module.exports = router;
+
+function delete_old_mp4_files(uuid) {
+	const child_process = require('child_process');
+	let cmd = `rm -f routes/${uuid}-*.mp4`;
+	let stdout = child_process.execSync(cmd);
+	console.log(`delete_mp4:${stdout.toString()}`);
+}
 
 function execute_concat(uuid, cb) {
 	const execFile = require('child_process').execFile;
