@@ -104,13 +104,13 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 		const job_info = {};
 		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
 
-	        try {
+		try {
 			duration = execute_probe_duration(job_info.sourceUrl);
-        		console.log(`probe duration: ${duration}`);
+			console.log(`probe duration: ${duration}`);
 		} catch (error) {
-			res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}`});
-                	return;
-	        }
+			res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}` });
+			return;
+		}
 		await job_dispatch(job_info, duration, alive_meshubs);
 	}
 
