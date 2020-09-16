@@ -6,6 +6,11 @@ const splitJobSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  imageSourceUrl: {
+    type: String,
+    required: true,
+    trim: true
+  },
   paramBitrate: {
     type: Number,
     required: true,
@@ -48,6 +53,11 @@ const splitJobSchema = new mongoose.Schema({
   progress: {
     type: Number,
     required: true
+  },
+  job_type: {
+    type: String,
+    required: true,
+    trim: true,
   },
   in_progress: {
     type: Boolean,

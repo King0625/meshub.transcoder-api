@@ -11,6 +11,11 @@ const jobSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  imageSourceUrl: {
+    type: String,
+    required: true,
+    trim: true
+  },
   paramBitrate: {
     type: Number,
     required: true,
@@ -36,9 +41,20 @@ const jobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  previewFromSec: {
+    type: Number,
+  },
+  previewToSec: {
+    type: Number,
+  },
   overall_progress: {
     type: Number,
     required: true
+  },
+  job_type: {
+    type: String,
+    required: true,
+    trim: true,
   },
   status: {
     type: String,
@@ -49,6 +65,9 @@ const jobSchema = new mongoose.Schema({
   result_mp4: {
     type: String,
     trim: true
+  },
+  dispatchedAt: {
+    type: Date,
   }
 }, {
   id: false,
