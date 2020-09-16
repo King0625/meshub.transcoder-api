@@ -68,6 +68,9 @@ const splitJobSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+  dispatchedAt: {
+    type: Date,
   }
 }, { timestamps: true });
 

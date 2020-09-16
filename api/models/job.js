@@ -65,9 +65,6 @@ const jobSchema = new mongoose.Schema({
   result_mp4: {
     type: String,
     trim: true
-  },
-  dispatchedAt: {
-    type: Date,
   }
 }, {
   id: false,
