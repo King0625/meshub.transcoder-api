@@ -315,6 +315,7 @@ module.exports = router;
 function delete_old_mp4_files(uuid) {
 	const child_process = require('child_process');
 	let cmd = `rm -f routes/${uuid}-*.mp4`;
+	console.log(cmd);
 	let stdout = child_process.execSync(cmd);
 	console.log(`delete_mp4:${stdout.toString()}`);
 }
