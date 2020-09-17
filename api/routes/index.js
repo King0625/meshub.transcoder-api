@@ -95,6 +95,13 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 			message: "No meshubs alive now!!!!"
 		});
 	}
+	const job_type = g_job_data.transcode_job.job_type;
+	const imageSourceUrl = g_job_data.transcode_job.imageSourceUrl;
+	if (job_type == 'merge' && imageSourceUrl == undefined) {
+		return res.status(400).json({
+			error: "You have to provide imageSourceUrl when job_type is 'merge'"
+		})
+	}
 
 	const previewFromSec = g_job_data.transcode_job.previewFromSec;
 	const previewToSec = g_job_data.transcode_job.previewToSec;
