@@ -27,10 +27,14 @@ async function job_dispatch(job, duration, alive_meshubs) {
 	console.log(`Insert one job...`);
 	console.log(JSON.stringify(job, '', '\t'));
 
+	const hasPreviewData = (job.previewFromSec != undefined && job.previewToSec != undefined);
 	let meshubNumbers = job.meshubNumbers;
-	let segmentLength = Math.ceil(duration / meshubNumbers);
-	let paramSeekBeginSec = 0;
-	let paramSeekEndSec = segmentLength;
+
+	let segmentLength = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / meshubNumbers) : Math.ceil(duration / meshubNumbers);
+
+	let paramSeekBeginSec = hasPreviewData ? job.previewFromSec : 0;
+
+	let paramSeekEndSec = hasPreviewData ? paramSeekBeginSec + segmentLength : segmentLength;
 
 	const splitJobs = [];
 	for (let i = 0; i < meshubNumbers; i++) {
@@ -50,7 +54,9 @@ async function job_dispatch(job, duration, alive_meshubs) {
 		alive_meshubs[assigned].save();
 		splitJobs.push(job_slice);
 		paramSeekBeginSec += segmentLength;
-		paramSeekEndSec = (i == meshubNumbers - 2) ? Math.ceil(duration) : paramSeekEndSec + segmentLength;
+
+		paramSeekEndSec = (i == meshubNumbers - 2) ? (hasPreviewData ? Math.ceil(job.previewToSec) : Math.ceil(duration)) : paramSeekEndSec + segmentLength;
+
 		console.log(`pushed job_slice ${i}/${meshubNumbers}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
 	}
 
@@ -94,7 +100,7 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 	for (g_job of g_jobs) {
 		g_job.uuid = uuidv4();
 		const job_info = {};
-		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
+		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0, job_type: "transcode" });
 
 		try {
 			duration = execute_probe_duration(job_info.sourceUrl);
@@ -159,6 +165,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		let job_json = {};
 		if (first_splitJob != null) {
 			first_splitJob.in_progress = true;
+			first_splitJob.dispatchedAt = new Date();
 			await first_splitJob.save();
 			job_json = first_splitJob.toJSON();
 			delete job_json.in_progress;
@@ -267,7 +274,10 @@ router.post('/api/transcode/upload', function (req, res, next) {
 
 			if (all_split_jobs_uploaded) {
 				job.status = job.status == "uploading" ? "merging" : job.status;
+				job.job_type = "merge";
 				await job.save();
+				await SplitJob.updateMany({ uuid: job_uuid }, { job_type: "merge" });
+
 				execute_concat(job_uuid, (result_mp4) => {
 					job.overall_progress = 100;
 					job.result_mp4 = `https://torii-demo.meshub.io/v2/${result_mp4}`;
