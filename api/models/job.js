@@ -13,7 +13,6 @@ const jobSchema = new mongoose.Schema({
   },
   imageSourceUrl: {
     type: String,
-    required: true,
     trim: true
   },
   paramBitrate: {
