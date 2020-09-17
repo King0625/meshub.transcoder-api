@@ -55,7 +55,6 @@ const splitJobSchema = new mongoose.Schema({
   },
   job_type: {
     type: String,
-    required: true,
     trim: true,
   },
   in_progress: {

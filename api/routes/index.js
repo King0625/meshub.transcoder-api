@@ -116,7 +116,7 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 	for (g_job of g_jobs) {
 		g_job.uuid = uuidv4();
 		const job_info = {};
-		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0, job_type: "transcode" });
+		Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
 
 		try {
 			duration = execute_probe_duration(job_info.sourceUrl);
@@ -290,9 +290,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 
 			if (all_split_jobs_uploaded) {
 				job.status = job.status == "uploading" ? "merging" : job.status;
-				job.job_type = "merge";
 				await job.save();
-				await SplitJob.updateMany({ uuid: job_uuid }, { job_type: "merge" });
 
 				execute_concat(job_uuid, (result_mp4) => {
 					job.overall_progress = 100;

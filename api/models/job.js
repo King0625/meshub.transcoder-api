@@ -52,7 +52,6 @@ const jobSchema = new mongoose.Schema({
   },
   job_type: {
     type: String,
-    required: true,
     trim: true,
   },
   status: {
