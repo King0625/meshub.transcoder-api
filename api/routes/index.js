@@ -20,14 +20,13 @@ async function refresh_meshub_status() {
 	return meshubs;
 }
 
-async function job_dispatch(job, duration, alive_meshubs) {
+async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 	job.meshubNumbers = parseInt(job.meshubNumbers) == 0 ? alive_meshubs.length : parseInt(job.meshubNumbers);
 
 	await Job.create(job);
 	console.log(`Insert one job...`);
 	console.log(JSON.stringify(job, '', '\t'));
 
-	const hasPreviewData = (job.previewFromSec != undefined && job.previewToSec != undefined);
 	let meshubNumbers = job.meshubNumbers;
 
 	let segmentLength = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / meshubNumbers) : Math.ceil(duration / meshubNumbers);
@@ -97,6 +96,23 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 		});
 	}
 
+	const previewFromSec = g_job_data.transcode_job.previewFromSec;
+	const previewToSec = g_job_data.transcode_job.previewToSec;
+
+	if ((previewToSec != undefined && previewFromSec == undefined) || (previewToSec == undefined && previewFromSec != undefined)) {
+		return res.status(400).json({
+			error: "You missed previewToSec or previewFromSec"
+		})
+	}
+
+	const hasPreviewData = previewFromSec != undefined && previewToSec != undefined;
+
+	if (hasPreviewData && (previewFromSec < 0 || previewToSec < 0 || previewToSec - previewFromSec <= 0)) {
+		return res.status(400).json({
+			error: "invalid preview data"
+		})
+	}
+
 	for (g_job of g_jobs) {
 		g_job.uuid = uuidv4();
 		const job_info = {};
@@ -109,7 +125,7 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 			res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}` });
 			return;
 		}
-		await job_dispatch(job_info, duration, alive_meshubs);
+		await job_dispatch(job_info, duration, alive_meshubs, hasPreviewData);
 	}
 
 	res.status(200).json({
