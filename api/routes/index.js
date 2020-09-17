@@ -99,7 +99,7 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 	const imageSourceUrl = g_job_data.transcode_job.imageSourceUrl;
 	if (job_type == 'merge' && imageSourceUrl == undefined) {
 		return res.status(400).json({
-			error: "You have to provide imageSourceUrl when job_type is 'merge'"
+			error: "You have to provide imageSourceUrl when job_type is merge"
 		})
 	}
 
