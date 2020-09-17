@@ -29,7 +29,7 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 
 	let meshubNumbers = job.meshubNumbers;
 
-	let segmentLength = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / meshubNumbers) : Math.ceil(duration / meshubNumbers);
+	let segmentLength = hasPreviewData ? Math.floor((job.previewToSec - job.previewFromSec) / meshubNumbers) : Math.floor(duration / meshubNumbers);
 
 	let paramSeekBeginSec = hasPreviewData ? job.previewFromSec : 0;
 
