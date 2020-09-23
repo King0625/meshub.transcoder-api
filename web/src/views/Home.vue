@@ -73,8 +73,8 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="Profile">
-            <el-select v-model="q.paramProfile" style="width: 100%;">
+          <el-form-item label="Preset">
+            <el-select v-model="q.paramPreset" style="width: 100%;">
               <el-option
                 label="ultrafast"
                 value="ultrafast">
@@ -141,7 +141,7 @@ export default {
         paramCrf: 23,
         paramResolutionWidth: null,
         paramResolutionHeight: null,
-        paramProfile: "ultrafast",
+        paramPreset: "ultrafast",
         resolution: '720P'
       },
       resolutionMap: {
