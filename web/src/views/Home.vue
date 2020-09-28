@@ -7,9 +7,30 @@
       </p>
       <div class="parameter-block">
         <p>Parameter</p>
+        <el-form label-width="80px">
+          <el-form-item label="Token">
+            <el-input v-model="token"></el-input>
+          </el-form-item>
+        </el-form>
         <el-form ref="form" :model="q" label-width="80px">
           <el-form-item label="Video Url">
-            <el-input v-model="q.sourceUrl"></el-input>
+            <el-input v-model="sourceUrl"></el-input>
+          </el-form-item>
+          <el-form-item label="Bitrate">
+            <el-select v-model="q.paramBitrate" style="width: 100%;">
+              <el-option
+                label="1 Mbps"
+                :value="1000000">
+              </el-option>
+              <el-option
+                label="5 Mbps"
+                :value="5000000">
+              </el-option>
+              <el-option
+                label="10 Mbps"
+                :value="10000000">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="Crf">
             <el-select v-model="q.paramCrf" style="width: 100%;">
@@ -44,43 +65,16 @@
             </el-select>
           </el-form-item>
           <el-form-item label="Numbers">
-            <el-select v-model="q.meshubNumbers" style="width: 100%;">
+            <el-select v-model="meshubNumbers" style="width: 100%;">
               <el-option
-                label="1"
-                value="1">
-              </el-option>
-              <el-option
-                label="2"
-                value="2">
-              </el-option>
-              <el-option
-                label="3"
-                value="3">
-              </el-option>
-              <el-option
-                label="4"
-                value="4">
-              </el-option>
-              <el-option
-                label="5"
-                value="5">
-              </el-option>
-              <el-option
-                label="6"
-                value="6">
-              </el-option>
-              <el-option
-                label="7"
-                value="7">
-              </el-option>
-              <el-option
-                label="8"
-                value="8">
+                v-for="member in 8"
+                :label="member"
+                :value="member">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="Profile">
-            <el-select v-model="q.paramProfile" style="width: 100%;">
+          <el-form-item label="Preset">
+            <el-select v-model="q.paramPreset" style="width: 100%;">
               <el-option
                 label="ultrafast"
                 value="ultrafast">
@@ -95,15 +89,25 @@
               </el-option>
             </el-select>
           </el-form-item>
+          <el-form-item label="Job ID" v-if="uuid">
+            <el-input v-model="uuid" readonly></el-input>
+          </el-form-item>
         </el-form>
       </div>
-      <el-button type="danger" @click="transcoding()">Transcoding</el-button>
+      <el-button :type="isTranscoding ? 'info' : 'danger'" :disabled="isTranscoding" @click="transcoding()">Start Transcode</el-button>
+      <p v-if="isTranscoding">Status: {{ status }}</p>
       <div class="transcoding-block">
         <div class="transcoding-progress">
           <el-progress :text-inside="true" :stroke-width="26" :percentage="progress" :status="progress === 100 ? 'success' : ''"></el-progress>
-          <p v-if="progress === 100" class="transcoding-message">It took you {{ time }} seconds to transcode!!</p>
+          <p v-if="progress === 100" class="transcoding-message">Total time spent transcoding (pending: {{ spentTime.pending }} , transcoding: {{ spentTime.transcoding }}, uploading: {{ spentTime.uploading }}, merging: {{ spentTime.merging }}, finished: {{ spentTime.finished }}.)</p>
         </div>
       </div>
+    </div>
+
+    <p v-if="fileUrl">File URL: {{ fileUrl }}</p>
+    <div class="remove-video-block">
+      <el-input v-model="removeUUID"></el-input>
+      <el-button type="danger" @click="removeVideo">Remove</el-button>
     </div>
 
     <div v-show="dialogVisible" class="video-popup-bg" @click.self="dialogVisible = false">
@@ -117,7 +121,7 @@
           playsinline
           preload="auto">
           <source :src="result_url">
-        </video>
+        </video> 
       </div>
     </div>
   </div>
@@ -129,13 +133,15 @@ export default {
   name: 'Home',
   data() {
     return {
+      token: null,
+      sourceUrl: 'https://torii-demo.meshub.io/test.mp4',
+      meshubNumbers: 2,
       q: {
-        sourceUrl: 'https://torii-demo.meshub.io/test.mp4',
+        paramBitrate: 1000000,
         paramCrf: 23,
         paramResolutionWidth: null,
         paramResolutionHeight: null,
-        meshubNumbers: 2,
-        paramProfile: "ultrafast",
+        paramPreset: "ultrafast",
         resolution: '720P'
       },
       resolutionMap: {
@@ -152,12 +158,24 @@ export default {
           height: 360
         }
       },
-      result_url: '',
+      result_url: null,
       progress: 0,
       timer: null,
       time: 0,
       dialogVisible: false,
-      isFirstPlay: true
+      isFirstPlay: true,
+      isTranscoding: false,
+      uuid: null,
+      removeUUID: null,
+      fileUrl: null,
+      spentTime: {
+        pending: 0,
+        transcoding: 0,
+        uploading: 0,
+        merging: 0,
+        finished: 0
+      },
+      status: null
     }
   },
   watch: {
@@ -176,39 +194,94 @@ export default {
         });
         return
       }
+      if(this.token === null) {
+        this.$message({
+          message: 'invalid token',
+          type: 'error'
+        });
+        return
+      }
+      this.isTranscoding = true
       this.progress = 0
       this.time = 0
+      this.removeUUID = null
+      this.status = null
       this.q.paramResolutionWidth = this.resolutionMap[this.q.resolution].width
       this.q.paramResolutionHeight = this.resolutionMap[this.q.resolution].height
-      axios
-      .post('https://torii-demo.meshub.io/api/transcode/job', this.q)
-      .then(res => {
+      axios({
+        method: 'post',
+        url: 'https://torii-demo.meshub.io/v2/api/transcode/job',
+        headers: {
+          'X-MESHUB-TRANSCODER-API-TOKEN': this.token
+        },
+        data: {
+          transcode_job: {
+            sourceUrl: this.sourceUrl,
+            meshubNumbers: this.meshubNumbers
+          },
+          resolutions: [this.q]
+        }
+      }).then(res => {
+        this.uuid = res.data.jobs[0].uuid
         this.timer = setInterval(() => {
-          this.getProgress(res.data.uuid)
+          this.getProgress(res.data.jobs[0].uuid)
         }, 2000)
+      }).catch(error => {
+        this.$message({
+          message: error.response.data.message,
+          type: 'error'
+        });
+        return
       })
     },
     getProgress(uuid) {
-      axios
-      .get(`https://torii-demo.meshub.io/api/transcode/job?uuid=${uuid}`)
-      .then(res => {
+      axios({
+        method: 'get',
+        url: `https://torii-demo.meshub.io/v2/api/transcode/job?uuids[]=${uuid}`,
+        headers: {
+          'X-MESHUB-TRANSCODER-API-TOKEN': this.token
+        }
+      }).then(res => {
         this.time = this.time + 2
-        this.progress = res.data.overall_progress
+        this.progress = res.data.jobs[0].overall_progress
+        this.spentTime[res.data.jobs[0].status] = this.spentTime[res.data.jobs[0].status] + 2
+        this.status = res.data.jobs[0].status
         if(this.progress === 100) {
+          this.removeUUID = uuid
           clearInterval(this.timer)
           this.$message({
             message: 'Transcoding success!!',
             type: 'success'
           });
           this.dialogVisible = true
-          this.result_url = res.data.result_mp4
+          this.result_url = res.data.jobs[0].result_mp4
+          this.fileUrl = res.data.jobs[0].result_mp4
           if(!this.isFirstPlay) {
             setTimeout(() => {
               this.$refs.video.load()
             }, 500)
           }
           this.isFirstPlay = !this.isFirstPlay
+          this.isTranscoding = false
         }
+      })
+    },
+    removeVideo() {
+      axios({
+        method: 'post',
+        url: `https://torii-demo.meshub.io/v2/api/transcode/remove_mp4`,
+        headers: {
+          'X-MESHUB-TRANSCODER-API-TOKEN': this.token
+        },
+        data: {
+          uuid: this.removeUUID
+        }
+      }).then(res => {
+        this.removeUUID = null
+        this.$message({
+          message: res.data.message,
+          type: 'success'
+        });
       })
     }
   }
@@ -283,6 +356,15 @@ export default {
           height: 200px;
         }
       }
+    }
+  }
+  .remove-video-block {
+    padding: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    button {
+      margin-left: 10px;
     }
   }
 </style>
