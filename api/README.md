@@ -16,12 +16,11 @@
 request:
 
 - body
-:::warning
-meshubNumber 為 0 時，server 會自動分割任務給所有 meshub 機器
-:::
+
+> meshubNumber 為 0 時，server 會自動分割任務給所有 meshub 機器
 
 example1:
-```JSON
+```json
 {
    "transcode_job":{
       "sourceUrl":"https://torii-demo.meshub.io/v2/test.mp4",
@@ -44,7 +43,7 @@ example1:
 
 example2:
 
-```JSON
+```json
 {
    "transcode_job":{
       "sourceUrl":"https://torii-demo.meshub.io/v2/test.mp4",
@@ -68,11 +67,11 @@ example2:
 
 - header
 
-```JSON
+```json
 { "X-MESHUB-TRANSCODER-API-TOKEN":"iA9Ra0pB" }
 ```
 response (200): 
-```JSON
+```json
 {
    "sourceUrl":"https://torii-demo.meshub.io/v2/test.mp4",
    "jobs":[
@@ -100,18 +99,16 @@ response (200):
 > P.S. 如果沒有任何meshub機器存活的狀況下 ( 雖然這是極端狀況，但以防萬一，還是列了出來 ):
 
 response(200):
-```JSON
+```json
 {
     "message": "No meshubs alive now!!!!"
 }
 ```
 
-:::
-
 - response(400)
 *當 job_type 為 merge 時沒提供 imageSourceUrl*
 
-```JSON
+```json
 {
   "error": "You have to provide imageSourceUrl when job_type is merge"
 }
@@ -119,7 +116,7 @@ response(200):
 
 - response(400)
 *當 previewFromSec 和 previewToSec 這兩個參數中缺了一個*
-```JSON
+```json
 {
   "error": "You missed previewToSec or previewFromSec"
 }
@@ -127,7 +124,7 @@ response(200):
 
 - response(400) 
 *當 previewFromSec < 0 或 previewToSec < 0 或 previewToSec - previewFromSec <= 0 時*
-```JSON
+```json
 {
   "error": "invalid preview data"
 }
@@ -135,7 +132,7 @@ response(200):
 
 - response(400)
 *無法測出影片網址的長度時*
-```JSON
+```json
 {
   "error": "unable to probe duration of given url {URL}"
 }
@@ -147,7 +144,7 @@ response(200):
 request:
 
 - queryString
-```JSON
+```json
 {
     "uuids[]": "3e07e4f7-c7c5-426b-b24b-40aed2129773",
     "uuids[]": "a9f45a99-220b-4355-bfa7-058e3a125b84"
@@ -157,7 +154,7 @@ request:
 
 response (200):
 
-```JSON
+```json
 {
   "jobs": [
     {
@@ -244,7 +241,7 @@ response (200):
 ```
 
 - 若uuid都沒有資料:
-```JSON
+```json
 {
     "jobs": []
 }
@@ -257,19 +254,19 @@ API user 會傳 uuid 到 form data，將該 uuid 匹配到的 mp4 檔案做刪�
 
 request
 - body
-```JSON
+```json
 { "uuid": "079b96d8-3f42-4f62-97eb-307612475d84" }
 ```
 - header
 
-```JSON
+```json
 { "X-MESHUB-TRANSCODER-API-TOKEN": "iA9Ra0pB" }
 ```
 
 response:
 - success (200):
 
-```JSON
+```json
 {
     "error": false,
     "uuid": "079b96d8-3f42-4f62-97eb-307612475d84",
@@ -277,7 +274,7 @@ response:
 }
 ```
 - failed (404):
-```JSON
+```json
 {
     "error": true,
     "message": "uuid not found"
@@ -291,7 +288,7 @@ response:
 
 response(ex: clientIp=119.247.119.29): 
 
-```JSON
+```json
 {
     "sourceUrl": "https://torii-demo.meshub.io/test.mp4",
     "paramBitrate": 1000000,
@@ -313,19 +310,19 @@ response(ex: clientIp=119.247.119.29):
 
 request:
 - body
-```JSON
-{ uuid: "079b96d8-3f42-4f62-97eb-307612475d84"}
+```json
+{ "uuid": "079b96d8-3f42-4f62-97eb-307612475d84"}
 ```
 
 response(200): 成功（ 沒有 response body ）
 
 response(400): request body 沒有帶 uuid
-```JSON
-{ error: "job uuid not found in request body" }
+```json
+{ "error": "job uuid not found in request body" }
 ```
 response(404): 沒有找到該 uuid 的 job
-```JSON
-{ error: "job with uuid not found: 079b96d8-3f42-4f62-97eb-307612475d84" }
+```json
+{ "error": "job with uuid not found: 079b96d8-3f42-4f62-97eb-307612475d84" }
 ```
 
 ## 帳號管理 API
@@ -338,7 +335,7 @@ P.S. 部署後會先在 db 手動新增 admin account
 request: 
 - header
 
-```JSON
+```json
 { "X-MESHUB-TRANSCODER-API-TOKEN":"iA9Ra0pB" }
 ```
 
@@ -346,7 +343,7 @@ response:
 
 - 成功(200)
 
-```JSON
+```json
 {
   "accounts": [
     {
@@ -367,9 +364,9 @@ response:
 ```
 - 驗證失敗(403) -- 找不到帳號或者帳號非 admin
 
-```JSON
+```json
 {
-    message: "Request forbidden"
+    "message": "Request forbidden"
 }
 ```
 
@@ -379,14 +376,14 @@ response:
 request: 
 - header
 
-```JSON
+```json
 { "X-MESHUB-TRANSCODER-API-TOKEN":"iA9Ra0pB" }
 ```
 
 response:
 
 - 成功(200)
-```JSON
+```json
 {
   "account": {
     "time_create": "2020-09-04T04:56:19.981Z",
@@ -403,9 +400,9 @@ response:
 ### POST /v2/api/account/{account}
 
 - 成功(200)
-```JSON
+```json
 {
-  "message": "Account created successfully"
+  "message": "Account created successfully",
   "account": {
     "time_create": "2020-09-04T05:43:19.932Z",
     "time_use": "2020-09-04T05:54:11.142Z",
@@ -417,7 +414,7 @@ response:
 
 - 失敗(409) 
 
-```JSON
+```json
 {
     "message": "Account already in use!"
 }
@@ -427,7 +424,7 @@ response:
 ### DELETE /v2/api/account/{account}
 
 - 成功(200)
-```JSON
+```json
 {
     "message": "Account deleted successfully."
 }
