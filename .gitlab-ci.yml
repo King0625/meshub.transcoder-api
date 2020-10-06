@@ -1,0 +1,38 @@
+image: node:12-alpine
+
+before_script:
+  - echo "Initialize the gitlab ci environment";
+  - which ssh-agent || ( apk update && apk add --no-cache openssh-client )
+  - eval $(ssh-agent -s)
+  - echo "$PROD_SSH_PRI_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -m 700 -p ~/.ssh
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  - >
+    if [ $CI_COMMIT_REF_NAME == "master" ]; then
+      USER=$PROD_SERVER_USER;
+      SERVER=$PROD_SERVER_IP;
+    fi
+  - echo "End";
+
+stages:
+  - deploy
+
+deploy_source_code:
+  stage: deploy
+  script:
+    - echo "Deploy to server..."
+    - >
+      if [ $CI_COMMIT_REF_NAME == "master" ]; then
+        ssh $USER@$SERVER "
+          cd /home/meshdev/torii/torii_webui_v2/api;
+          git pull;
+          sudo docker image prune -f;
+          sudo docker build -t torii/meshub-server .;
+          sudo docker stop meshub-server;
+          sudo docker run -d -p 21543:21543 --rm --name meshub-server torii/meshub-server
+          "
+      fi
+    - echo "Success deploymemnt~";
+  only:
+    - master
+    - merge_request
