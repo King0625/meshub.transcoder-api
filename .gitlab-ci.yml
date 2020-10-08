@@ -27,9 +27,8 @@ deploy_source_code:
           cd /home/meshdev/torii/torii_webui_v2/api;
           git pull;
           sudo docker image prune -f;
-          sudo docker build -t torii/meshub-server .;
           sudo docker stop meshub-server;
-          sudo docker run -d -p 21543:21543 --rm --name meshub-server torii/meshub-server
+          sudo docker-compose up -d;
           "
       fi
     - echo "Success deploymemnt~";
