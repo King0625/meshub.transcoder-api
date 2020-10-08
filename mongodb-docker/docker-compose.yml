@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.3"
 services: 
   mongodb-server:
     build: .
@@ -19,4 +19,11 @@ services:
         source: ./init-mongo.sh
         target: /docker-entrypoint-initdb.d/init-mongo.sh
         read_only: true
-      - ./db:/data/db
+      - mongodata:/data/db
+
+volumes:
+  mongodata:
+    driver_opts:
+      type: none
+      device: ./db
+      o: bind
