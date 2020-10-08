@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 services: 
   mongodb-server:
     build: .
@@ -15,4 +15,8 @@ services:
       MONGO_REGULAR_PASSWORD: ${MONGO_REGULAR_PASSWORD}
       MONGO_REGULAR_DATABASE: ${MONGO_REGULAR_DATABASE}
     volumes:
+      - type: bind
+        source: ./init-mongo.sh
+        target: /docker-entrypoint-initdb.d/init-mongo.sh
+        read_only: true
       - ./db:/data/db
