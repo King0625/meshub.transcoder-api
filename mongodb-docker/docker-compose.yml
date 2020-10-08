@@ -16,11 +16,4 @@ services:
       MONGO_REGULAR_DATABASE: ${MONGO_REGULAR_DATABASE}
     volumes:
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
-      - mongodata:/data/db
-
-volumes:
-  mongodata:
-    driver_opts:
-      type: none
-      device: ./db
-      o: bind
+      - ./db:/data/db
