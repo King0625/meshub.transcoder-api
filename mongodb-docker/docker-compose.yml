@@ -19,11 +19,4 @@ services:
         source: ./init-mongo.sh
         target: /docker-entrypoint-initdb.d/init-mongo.sh
         read_only: true
-      - mongodata:/data/db
-
-volumes:
-  mongodata:
-    driver_opts:
-      type: none
-      device: ./db
-      o: bind
+      - ./db:/data/db
