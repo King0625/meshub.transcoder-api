@@ -6,7 +6,6 @@ COPY ./package*.json ./
 RUN npm install
 COPY ./ ./
 
-# This url will be changed to remote mongodb server
-ENV MONGO_URL="mongodb://127.0.0.1:27017/torii-meshub-v2";
+ENV MONGO_URL="mongodb://meshub:qazwsx@torii-demo.meshub.io:27017/torii-meshub-v2";
 
 CMD ["npm", "start"]
