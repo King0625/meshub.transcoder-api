@@ -6,17 +6,5 @@ services:
     ports:
       - 27017:27017
     container_name: 'meshub-mongo'
-    env_file: .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
-      MONGO_REGULAR_USER: ${MONGO_REGULAR_USER}
-      MONGO_REGULAR_PASSWORD: ${MONGO_REGULAR_PASSWORD}
-      MONGO_REGULAR_DATABASE: ${MONGO_REGULAR_DATABASE}
     volumes:
-      - type: bind
-        source: ./init-mongo.sh
-        target: /docker-entrypoint-initdb.d/init-mongo.sh
-        read_only: true
       - ./db:/data/db
