@@ -27,8 +27,7 @@ deploy_source_code:
           cd /home/meshdev/torii/torii_webui_v2/api;
           git pull;
           sudo docker image prune -f;
-          sudo docker rm -f meshub-server;
-          sudo docker rm -f mongodb-server;
+          sudo docker rm -f transcoder-api;
           sudo docker-compose up -d;
           "
       fi
