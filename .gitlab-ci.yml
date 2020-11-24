@@ -26,8 +26,8 @@ deploy_source_code:
         ssh $USER@$SERVER "
           cd /home/meshdev/torii/torii_webui_v2/api;
           git pull;
-          sudo docker image prune -f;
           sudo docker rm -f transcoder-api;
+          sudo docker image prune -f;
           sudo docker-compose up -d;
           "
       fi
