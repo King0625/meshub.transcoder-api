@@ -8,3 +8,9 @@ mongoose.connect(process.env.MONGO_URL, {
   useFindAndModify: false,
   useUnifiedTopology: true
 })
+
+mongoose.connection
+ .once('open', () => console.log('Good to go!'))
+ .on('error', (error) => {
+ console.warn('Warning', error);
+ });
