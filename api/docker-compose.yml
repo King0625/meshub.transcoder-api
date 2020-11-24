@@ -1,23 +1,8 @@
 version: "3.3"
-networks:
-  meshub-app-network:
-    driver: bridge
 services: 
   meshub-server:
     build: .
     restart: always
     ports:
       - 21543:21543
-    container_name: 'meshub-server'
-    networks:
-      - meshub-app-network
-  mongodb-server:
-    build: ../mongodb-docker
-    restart: always
-    ports:
-      - 27017:27017
-    container_name: 'mongodb-server'
-    networks:
-      - meshub-app-network
-    volumes:
-      - ../mongodb-docker/db:/data/db
+    container_name: 'transcoder-api'
