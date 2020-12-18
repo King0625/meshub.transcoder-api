@@ -10,7 +10,7 @@ router.get('/', async function (req, res, next) {
   const meshubs = await Meshub.find({});
   console.log(meshubs)
   for (meshub of meshubs) {
-    meshub.dead = (Date.now() - meshub.timestamp.getTime() > 60000);
+    meshub.dead = (Date.now() - meshub.timestamp.getTime() > 1000*60*10);
     meshub.time = meshub.timestamp.toLocaleString('en-US', { timeZone: 'Asia/Taipei' })
     await meshub.save();
   }

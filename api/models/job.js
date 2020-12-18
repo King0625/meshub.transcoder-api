@@ -1,6 +1,11 @@
 const mongoose = require('mongoose')
 
 const jobSchema = new mongoose.Schema({
+  account: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   uuid: {
     type: String,
     required: true,

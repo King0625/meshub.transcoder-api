@@ -31,6 +31,11 @@ const splitJobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  account: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   uuid: {
     type: String,
     required: true,
