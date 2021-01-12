@@ -48,7 +48,8 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 		delete job_slice.overall_progress;
 		job_slice.paramSeekBeginSec = paramSeekBeginSec;
 		job_slice.paramSeekEndSec = paramSeekEndSec;
-		job_slice.meshubId = alive_meshubs[i % alive_meshubs.length].ip_address;
+		//job_slice.meshubId = alive_meshubs[i % alive_meshubs.length].ip_address;
+		job_slice.meshubId = "--";
 		job_slice.progress = 0;
 		let prepend = "00" + i;
 		let suffix = prepend.substr(prepend.length-2);
@@ -67,6 +68,36 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 		console.log(`Bulk insert split jobs...`);
 		console.log(JSON.stringify(insertMany, '', '\t'));
 	})();
+}
+
+async function job_check_processing(params) {
+	if (params.transcode_job == undefined ||
+		params.transcode_job.sourceUrl == undefined || 
+		params.transcode_job.job_type == undefined || 
+		params.resolutions == undefined || 
+		params.resolutions.length == undefined ||
+		params.resolutions[0].paramBitrate == undefined ||
+		params.resolutions[0].paramCrf == undefined ||
+		params.resolutions[0].paramPreset == undefined ||
+		params.resolutions[0].paramResolutionWidth == undefined ||
+		params.resolutions[0].paramResolutionHeight == undefined
+		) {
+		console.log('not a valid job to check');
+		return null;
+	}
+	console.log(JSON.stringify(params, '', '\t'));
+	const g_job_test = await Job.findOne({
+				status: { "$in" : ["transcoding", "pending"]},
+				sourceUrl: params.transcode_job.sourceUrl,
+				job_type: params.transcode_job.job_type,
+				paramBitrate: params.resolutions[0].paramBitrate,
+				paramCrf: params.resolutions[0].paramCrf,
+				paramPreset: params.resolutions[0].paramPreset,
+				paramResolutionWidth: params.resolutions[0].paramResolutionWidth,
+				paramResolutionHeight: params.resolutions[0].paramResolutionHeight
+	}).populate("splitJobs", "-_id -__v -in_progress -meshubId -createdAt -updatedAt");
+	console.log("found\n" + JSON.stringify(g_job_test, '', '\t'));
+	return g_job_test;
 }
 
 async function job_find(job_uuid) {
@@ -89,6 +120,24 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 
 	const g_job_data = req.body;
 	const g_jobs = req.body.resolutions;
+
+	const exist_job = await job_check_processing(g_job_data);
+	if (exist_job != null) {
+		let jobs = [];
+		let job_json = {};
+		job_json = exist_job.toJSON();
+		delete job_json._id;
+		delete job_json.__v;
+		delete job_json.createdAt;
+		delete job_json.updatedAt;
+		delete job_json.splitJobs;
+		jobs.push(job_json);
+		res.status(200).json({
+			sourceUrl: exist_job.sourceUrl,
+			jobs: jobs
+		})
+		return;
+	}
 
 	const alive_meshubs = meshubs_with_new_status.filter(meshub => !meshub.dead);
 
@@ -185,23 +234,14 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 			setDefaultsOnInsert: true
 		});
 
-		var first_splitJob = await SplitJob.findOne({
-			"meshubId": meshubId,
-			"progress": { "$ne": 100 }
-		}).sort("uuid uploadFileName");
+//		var first_splitJob = await SplitJob.findOne({
+//			"meshubId": meshubId,
+//			"progress": { "$ne": 100 }
+//		}).sort("uuid uploadFileName");
+		var first_splitJob = null;
 
 		let job_json = {};
 		//console.log(`first_splitJob: ${first_splitJob}`);
-		if (first_splitJob == null) {
-			const first_pendingJob = await SplitJob.findOne({
-				"in_progress": false,
-				"progress": { "$ne": 100 }
-			}).sort("uuid uploadFileName");
-			//console.log(`first_pendingJob: ${first_pendingJob}`);
-			if (first_pendingJob != null) {
-				first_splitJob = first_pendingJob;
-			}
-		}
 		if (first_splitJob == null) {
 			const first_overdueJob = await SplitJob.findOne({
 				"in_progress": true,
@@ -211,6 +251,16 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 			//console.log(`first_overdueJob: ${first_overdueJob}`);
 			if (first_overdueJob != null) {
 				first_splitJob = first_overdueJob;
+			}
+		}
+		if (first_splitJob == null) {
+			const first_pendingJob = await SplitJob.findOne({
+				"in_progress": false,
+				"progress": { "$ne": 100 }
+			}).sort("uuid uploadFileName");
+			//console.log(`first_pendingJob: ${first_pendingJob}`);
+			if (first_pendingJob != null) {
+				first_splitJob = first_pendingJob;
 			}
 		}
 		//console.log(`first_splitJob final: ${first_splitJob}`);
@@ -239,9 +289,9 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 	let meshub_ip = req.clientIp;
 
 	let job_uuid = req.body.uuid;
-	let paramSeekBeginSec = req.body.param_seek_begin_sec;
-	let paramSeekEndSec = req.body.param_seek_end_sec;
-	if (job_uuid == null || paramSeekBeginSec == null || paramSeekEndSec == null) {
+	let job_paramSeekBeginSec = req.body.param_seek_begin_sec;
+	let job_paramSeekEndSec = req.body.param_seek_end_sec;
+	if (job_uuid == null || job_paramSeekBeginSec == null || job_paramSeekEndSec == null) {
 		return res.status(400).json({ error: `job uuid/param_seek_begin_sec/param_seek_end_sec not found in request body` });
 	}
 
@@ -251,16 +301,18 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 			return res.status(404).json({ error: `job with uuid not found: ${job_uuid}` });
 		}
 
-		let meshubId = find_meshub_id_from_request(req);
+		let req_meshubId = find_meshub_id_from_request(req);
+		let req_job = await SplitJob.findOne({ uuid: job_uuid, paramSeekBeginSec: job_paramSeekBeginSec, paramSeekEndSec: job_paramSeekEndSec, meshubId: req_meshubId });
+		if (req_job == null) {
+			return res.status(404).json({ error: `job with uuid not found: ${job_uuid}` });
+		}
+		req_job.in_progress = true;
+		req_job.progress = req.body.progress;
+		req_job.updatedAt = Date.now();
+		await req_job.save();
 		let splitJobs = await SplitJob.find({ uuid: job_uuid });
 		for (let i = 0; i < splitJobs.length; i++) {
 			let splitJob = splitJobs[i];
-			if (splitJob.paramSeekBeginSec == paramSeekBeginSec && splitJob.paramSeekEndSec == paramSeekEndSec) {
-				splitJob.in_progress = true;
-				splitJob.progress = req.body.progress;
-				splitJob.updatedAt = Date.now();
-				job.status = job.status == "pending" ? "transcoding" : job.status;
-			}
 			if (splitJob.progress == 100) splitJob.in_progress = false;
 			if (splitJob.in_progress == true && (Date.now() - splitJob.updatedAt) > 1000*60*10) {
 				splitJob.meshubId = "--";
@@ -280,6 +332,8 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 		if (job.overall_progress == 100) {
 			job.overall_progress = 99;
 			job.status = job.status == "transcoding" ? "uploading" : job.status;
+		} else {
+			job.status = job.status == "pending" ? "transcoding" : job.status;
 		}
 
 		await job.save();

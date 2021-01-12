@@ -47,8 +47,14 @@ router.get('/fixMissing', async function (req, res, next) {
 });
 
 router.get('/job_details', async function (req, res, next) {
-  const jobs = await Job.find({}).sort({ updatedAt: -1 }).limit(50).populate('splitJobs');
-  res.status(200).json(jobs);
+  if (!req.query.status) {
+    const jobs = await Job.find({"status":{"$in":["pending","transcoding"]}}).sort({ updatedAt: -1 }).limit(50).populate('splitJobs');
+    res.status(200).json(jobs);
+  }
+  else {
+    const jobs = await Job.find({"status":req.query.status}).sort({ updatedAt: -1 }).limit(50).populate('splitJobs');
+    res.status(200).json(jobs);
+  }
 })
 
 module.exports = router;
