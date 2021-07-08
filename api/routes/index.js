@@ -87,7 +87,7 @@ async function job_check_processing(params) {
 	}
 	console.log(JSON.stringify(params, '', '\t'));
 	const g_job_test = await Job.findOne({
-				status: { "$in" : ["transcoding", "pending"]},
+				status: { "$in" : ["transcoding", "pending", "merging", "uploading"]},
 				sourceUrl: params.transcode_job.sourceUrl,
 				job_type: params.transcode_job.job_type,
 				paramBitrate: params.resolutions[0].paramBitrate,
