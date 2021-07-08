@@ -23,7 +23,7 @@ deploy_source_code:
     - echo "Deploy to server..."
     - >
       if [ $CI_COMMIT_REF_NAME == "master" ]; then
-        ssh $USER@$SERVER "
+        ssh -p 2222 $USER@$SERVER "
           cd /home/meshdev/torii/torii_webui_v2/api;
           git pull;
           sudo docker-compose down --rmi all;
