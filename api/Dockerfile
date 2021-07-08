@@ -7,6 +7,6 @@ RUN npm install
 COPY ./ ./
 
 # remember not to add semicolon !!!!!!!
-ENV MONGO_URL=mongodb://mesh-admin:mesh1234@allinone.meshub.tv:50128/webrtc-admin
+ENV MONGO_URL=mongodb://transcoder-user:mesh1234@allinone.meshub.tv:50128/transcoder
 
 CMD ["npm", "start"]

@@ -1,6 +1,7 @@
 version: "3.3"
 services: 
-  meshub-server:
+  transcoder-api:
+    image: registry.gitlab.com/meshub/torii_webui/transcoder-api:2.0
     build: .
     restart: always
     ports:
