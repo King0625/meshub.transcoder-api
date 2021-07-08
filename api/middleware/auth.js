@@ -11,6 +11,7 @@ exports.accountMiddleware = (req, res, next) => {
       }
       account.time_use = new Date();
       account.save();
+      req.account = account.account;
       next();
     })
     .catch(err => {

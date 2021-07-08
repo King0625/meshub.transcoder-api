@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <img class="logo" src="https://meshub.io/assets/img/meshub-logo.png" alt="logo">
+    <img class="logo" src="https://meshub.io/assets/images/logo.png" alt="logo">
     <div class="transcoding-container">
       <p class="title">
         Transcoding
