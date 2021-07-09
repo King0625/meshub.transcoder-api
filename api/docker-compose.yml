@@ -17,6 +17,7 @@ services:
     hostname: certbot
     environment:
       - CERTBOT_EMAIL=owner@company.com
+    env_file: ./.env
     ports:
       - 8080:80
       - 4343:443
