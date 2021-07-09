@@ -4,12 +4,12 @@ WORKDIR /usr/app
 
 #RUN apt update
 #RUN apt install ffmpeg -y
-COPY ./package*.json ./
+COPY ./api/package*.json ./
 RUN npm install
-COPY ./ ./
+COPY ./api ./
 RUN mv ff* /usr/bin
 
-COPY ../web ./
+COPY ./web ./
 WORKDIR /usr/app/web
 RUN npm install
 RUN npm run build
