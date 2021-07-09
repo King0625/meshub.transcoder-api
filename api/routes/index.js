@@ -484,7 +484,7 @@ router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req,
 		const fileName = finishedJob.result_mp4;
 		const account = finishedJob.account;
 		console.log(fileName);
-		var reg = new RegExp(`https:\/\/${process.env.DOMAIN_NAME}\/v2\/result\/` + account + '_([0-9A-Za-z]+)\.mp4');
+		var reg = new RegExp(`https:\/\/${process.env.DOMAIN_NAME_REGEX}\/v2\/result\/` + account + '_([0-9A-Za-z]+)\.mp4');
 		//const parsedFileName = fileName.match(/https:\/\/torii-demo\.meshub\.io\/v2\/result\/([0-9A-Za-z]+)\.mp4/)[1];
 		const parsedFileName = account + '_' + fileName.match(reg)[1];
 		console.log(parsedFileName);
