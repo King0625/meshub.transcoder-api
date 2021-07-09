@@ -11,7 +11,7 @@ services:
     volumes:
       - result-mp4:/var/www/${DOMAIN_NAME}/v2/result
       - split-mp4:/var/www/${DOMAIN_NAME}/v2/upload
-      - certbot-conf:/conf.d
+      - certbot-conf:/usr/app/conf.d
   certbot:
     image: staticfloat/nginx-certbot
     hostname: certbot
