@@ -9,6 +9,12 @@ RUN npm install
 COPY ./ ./
 RUN mv ff* /usr/bin
 
+COPY ../web ./
+WORKDIR /usr/app/web
+RUN npm install
+RUN npm run build
+COPY ./build/* /var/www/${DOMAIN_NAME}/v2
+
 # remember not to add semicolon !!!!!!!
 ENV MONGO_URL=mongodb://transcoder-user:mesh1234@allinone.meshub.tv:50128/transcoder
 
