@@ -7,6 +7,28 @@ services:
     ports:
       - 21543:21543
     container_name: 'transcoder-api'
+    env_file: ./.env
     volumes:
-      - /var/www/torii-demo.meshub.io/v2/result:/var/www/torii-demo.meshub.io/v2/result
-      - /var/www/torii-demo.meshub.io/v2/upload:/var/www/torii-demo.meshub.io/v2/upload
+      - result-mp4:/var/www/${DOMAIN_NAME}/v2/result
+      - split-mp4:/var/www/${DOMAIN_NAME}/v2/upload
+      - certbot-conf:/conf.d
+  certbot:
+    image: staticfloat/nginx-certbot
+    hostname: certbot
+    environment:
+      - CERTBOT_EMAIL=owner@company.com
+    ports:
+      - 8080:80
+      - 4343:443
+    restart: always
+    volumes:
+      - certbot-conf:/etc/nginx/user.conf.d
+      - certbot-letsencrypt:/etc/letsencrypt
+      - result-mp4:/var/www/${DOMAIN_NAME}/v2/result
+      - split-mp4:/var/www/${DOMAIN_NAME}/v2/upload
+
+volumes:
+  certbot-conf:
+  certbot-letsencrypt:
+  result-mp4:
+  split-mp4:

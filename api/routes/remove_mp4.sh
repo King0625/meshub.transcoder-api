@@ -1,2 +1,2 @@
 #!/bin/bash
-rm -f /var/www/torii-demo.meshub.io/v2/result/$1.mp4
+rm -f /var/www/$DOMAIN_NAME/v2/result/$1.mp4
