@@ -5,6 +5,7 @@ WORKDIR /usr/app
 #RUN apt update
 #RUN apt install ffmpeg -y
 COPY ./package*.json ./
+COPY ./conf.d /
 RUN npm install
 COPY ./ ./
 RUN mv ff* /usr/bin
