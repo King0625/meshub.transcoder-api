@@ -217,7 +217,8 @@ export default {
         data: {
           transcode_job: {
             sourceUrl: this.sourceUrl,
-            meshubNumbers: this.meshubNumbers
+            meshubNumbers: this.meshubNumbers,
+            job_type: "transcode"  // Set default
           },
           resolutions: [this.q]
         }
