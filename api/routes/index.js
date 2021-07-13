@@ -3,6 +3,7 @@ var router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const util = require('util');
 const fs = require('fs');
+const path = require('path');
 const os = require('os');
 
 const Job = require('../models/job');
@@ -349,7 +350,7 @@ async function concat_segments_to_result(job, job_uuid) {
 
 	for (let i = 0; i < splitJobs.length; i++) {
 		let job_slice = splitJobs[i];
-		let transcode_segment_exist = fs.existsSync(`/var/www/${process.env.DOMAIN_NAME}/v2/upload/${job_slice.uploadFileName}`);
+		let transcode_segment_exist = fs.existsSync(path.join(__dirname, `../public/upload/${job_slice.uploadFileName}`));
 		if (transcode_segment_exist == false) {
 			all_split_jobs_uploaded = false;
 		}
@@ -365,7 +366,7 @@ async function concat_segments_to_result(job, job_uuid) {
 		await job.save();
 
 		var result_mp4 = execute_concat_sync(job_uuid, job.account);
-		let result_segment_exist = fs.existsSync(`/var/www/${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`);
+		let result_segment_exist = fs.existsSync(path.join(__dirname, `../public/result/${result_mp4}`));
 		if (result_segment_exist == true) {
 			job.overall_progress = 100;
 			job.result_mp4 = `https://${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`;
@@ -414,7 +415,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 	let sampleFile = req.files.sampleFile;
 
 	// Use the mv() method to place the file somewhere on your server
-	let path = `/var/www/${process.env.DOMAIN_NAME}/v2/upload/${sampleFile.name}`;
+	let path = path.join(__dirname, `../public/upload/${sampleFile.name}`);
 	sampleFile.mv(path, function (err) {
 		if (err)
 			return res.status(500).send(err);
@@ -444,7 +445,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 //
 //			for (let i = 0; i < splitJobs.length; i++) {
 //				let job_slice = splitJobs[i];
-//				let transcode_segment_exist = fs.existsSync(`/var/www/${process.env.DOMAIN_NAME}/v2/upload/${job_slice.uploadFileName}`);
+//				let transcode_segment_exist = fs.existsSync(path.join(__dirname, `../public/upload/${job_slice.uploadFileName}`));
 //				if (transcode_segment_exist == false) {
 //					all_split_jobs_uploaded = false;
 //				}
@@ -456,7 +457,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 //				await job.save();
 //
 //				execute_concat(job_uuid, job.account, (result_mp4) => {
-//					let result_segment_exist = fs.existsSync(`/var/www/${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`);
+//					let result_segment_exist = fs.existsSync(path.join(__dirname, `../public/result/${result_mp4}`))
 //					if (result_segment_exist == true) {
 //						job.overall_progress = 100;
 //						job.result_mp4 = `https://${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`;
@@ -507,7 +508,8 @@ module.exports = router;
 
 function delete_old_mp4_files(uuid) {
 	const child_process = require('child_process');
-	let cmd = `rm -f /var/www/${process.env.DOMAIN_NAME}/v2/upload/${uuid}-*.mp4`;
+	const filePath = path.join(__dirname, `../public/upload/${uuid}-*.mp4`)
+	let cmd = `rm -f ${filePath}`;
 	console.log(cmd);
 	let stdout = child_process.execSync(cmd);
 	console.log(`delete_mp4:${stdout.toString()}`);
@@ -518,7 +520,8 @@ function execute_concat(uuid, account, cb) {
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${account}_${Math.random().toString(36).substring(7)}.mp4`;
-	execFile(cmd, [uuid, `/var/www/${process.env.DOMAIN_NAME}/v2/upload`, output_file_name], (err, stdout, stderr) => {
+	
+	execFile(cmd, [uuid, path.join(__dirname, `../public/upload`), output_file_name], (err, stdout, stderr) => {
 		console.log(`concat finished: ${stdout}`);
 		return cb(output_file_name);
 	})
@@ -529,7 +532,7 @@ function execute_concat_sync(uuid, account) {
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${account}_${Math.random().toString(36).substring(7)}.mp4`;
-	execFileSync(cmd, [uuid, `/var/www/${process.env.DOMAIN_NAME}/v2/upload`, output_file_name]);
+	execFileSync(cmd, [uuid, path.join(__dirname, `../public/upload`), output_file_name]);
 	return output_file_name;
 }
 

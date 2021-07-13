@@ -9,30 +9,8 @@ services:
     container_name: 'transcoder-api'
     env_file: ./.env
     volumes:
-      - static-source:/var/www/${DOMAIN_NAME}/v2
-      - result-mp4:/var/www/${DOMAIN_NAME}/v2/result
-      - split-mp4:/var/www/${DOMAIN_NAME}/v2/upload
-      - certbot-conf:/usr/app/conf.d
-  certbot:
-    image: staticfloat/nginx-certbot
-    hostname: certbot
-    environment:
-      - CERTBOT_EMAIL=owner@company.com
-    env_file: ./.env
-    ports:
-      - 8080:80
-      - 4343:443
-    restart: always
-    volumes:
-      - certbot-conf:/etc/nginx/user.conf.d
-      - certbot-letsencrypt:/etc/letsencrypt
-      - static-source:/var/www/${DOMAIN_NAME}/v2
-      - result-mp4:/var/www/${DOMAIN_NAME}/v2/result
-      - split-mp4:/var/www/${DOMAIN_NAME}/v2/upload
-
+      - result-mp4:./api/public/result
+      - split-mp4:./api/public/upload
 volumes:
-  certbot-conf:
-  certbot-letsencrypt:
-  static-source:
   result-mp4:
   split-mp4:

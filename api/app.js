@@ -24,6 +24,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(requestIp.mw());
 app.use('/v2', indexRouter);
+app.use('/v2/result', express.static(path.join(__dirname, 'public/result')))
 app.use('/v2/api/recover', recoverRouter);
 app.use('/v2/api/hello', debugRouter);
 app.use('/v2/api/account', accountRouter);
