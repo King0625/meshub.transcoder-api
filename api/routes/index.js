@@ -489,7 +489,7 @@ router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req,
 		//const parsedFileName = fileName.match(/https:\/\/torii-demo\.meshub\.io\/v2\/result\/([0-9A-Za-z]+)\.mp4/)[1];
 		const parsedFileName = account + '_' + fileName.match(reg)[1];
 		console.log(parsedFileName);
-		const stdout = execFileSync(cmd, [parsedFileName]);
+		const stdout = execFileSync(cmd, [`${path.join(__dirname, `../public/result`)}/${parsedFileName}`]);
 		console.log(`Finish deleting ${parsedFileName}.mp4: ${stdout}`);
 		return res.status(200).json({
 			"error": false,
@@ -532,7 +532,7 @@ function execute_concat_sync(uuid, account) {
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${account}_${Math.random().toString(36).substring(7)}.mp4`;
-	execFileSync(cmd, [uuid, path.join(__dirname, `../public/upload`), output_file_name]);
+	execFileSync(cmd, [uuid, path.join(__dirname, `../public/upload`), `${path.join(__dirname, `../public/result`)}/${output_file_name}`]);
 	return output_file_name;
 }
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-rm -f ../public/result/$1.mp4
+rm -f $1.mp4
