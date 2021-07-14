@@ -6,7 +6,7 @@ const SplitJob = require('../models/splitJob');
 const Meshub = require('../models/meshub');
 
 async function job_dispatch(job, duration, hasPreviewData) {
-	let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec),60) : Math.min(Math.ceil(duration),300);
+	let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 300);
 	job.splitJobCount = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / segmentLength) : Math.ceil(duration / segmentLength);
 
 	let splitJobCount = job.splitJobCount;
@@ -35,7 +35,7 @@ async function job_dispatch(job, duration, hasPreviewData) {
 		job_slice.progress = 100;
 		job_slice.in_progress = false;
 		let prepend = "00" + i;
-		let suffix = prepend.substr(prepend.length-2);
+		let suffix = prepend.substr(prepend.length - 2);
 		job_slice.uploadFileName = `${job.uuid}-${suffix}.mp4`;
 		splitJobs.push(job_slice);
 		console.log(`[recover] pushed job_slice ${i}/${splitJobCount}: seekBegin=${paramSeekBeginSec},seekEnd=${paramSeekEndSec}`);
@@ -60,20 +60,20 @@ function execute_probe_duration(url) {
 
 /* GET home page. */
 router.get('/', async function (req, res, next) {
-	const finishedJobs = await Job.find({status:'finished'}).sort("createdAt");;
+	const finishedJobs = await Job.find({ status: 'finished' }).sort("createdAt");;
 	console.log(`[recover] finishedJobs.length: ${finishedJobs.length}`);
 	for (let i = 0; i < finishedJobs.length; i++) {
 		let finishedJob = finishedJobs[i];
 		console.log(`[recover] finishedJob.uuid: ${finishedJob.uuid}`);
-		let splitJobs = await SplitJob.find({uuid:finishedJob.uuid});
+		let splitJobs = await SplitJob.find({ uuid: finishedJob.uuid });
 		console.log(`[recover] splitJobs.length: ${splitJobs.length}`);
 		if (splitJobs.length == 0) {
 			let transcodedUrl = finishedJob.sourceUrl;
-			if (transcodedUrl.indexOf('_PV.mp4')!=-1) {
-				transcodedUrl = transcodedUrl.replace('ottas:ottaspwd@','').replace('/private/44/','/files/44/demo/').replace('_PV.mp4','_PV_360p_256k.mp4');
+			if (transcodedUrl.indexOf('_PV.mp4') != -1) {
+				transcodedUrl = transcodedUrl.replace('ottas:ottaspwd@', '').replace('/private/44/', '/files/44/demo/').replace('_PV.mp4', '_PV_360p_256k.mp4');
 			}
 			else {
-				transcodedUrl = transcodedUrl.replace('ottas:ottaspwd@','').replace('/private/','/files/').replace('.mp4','_360p_256k.mp4');
+				transcodedUrl = transcodedUrl.replace('ottas:ottaspwd@', '').replace('/private/', '/files/').replace('.mp4', '_360p_256k.mp4');
 			}
 			console.log(`[recover] transcodedUrl: ${transcodedUrl}`);
 			try {

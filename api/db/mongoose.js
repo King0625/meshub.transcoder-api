@@ -9,7 +9,7 @@ mongoose.connect(process.env.MONGO_URL, {
 })
 
 mongoose.connection
- .once('open', () => console.log('Good to go!'))
- .on('error', (error) => {
- console.warn('Warning', error);
- });
+  .once('open', () => console.log('Good to go!'))
+  .on('error', (error) => {
+    console.warn('Warning', error);
+  });

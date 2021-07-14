@@ -14,7 +14,7 @@ const { accountMiddleware } = require('../middleware/auth');
 async function refresh_meshub_status() {
 	const meshubs = await Meshub.find({});
 	for (meshub of meshubs) {
-		meshub.dead = (Date.now() - meshub.timestamp.getTime() > 1000*60*10);
+		meshub.dead = (Date.now() - meshub.timestamp.getTime() > 1000 * 60 * 10);
 		meshub.time = meshub.timestamp.toLocaleString('en-US', { timeZone: 'Asia/Taipei' })
 		await meshub.save();
 	}
@@ -22,7 +22,7 @@ async function refresh_meshub_status() {
 }
 
 async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
-	let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec),60) : Math.min(Math.ceil(duration),300);
+	let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 300);
 	job.splitJobCount = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / segmentLength) : Math.ceil(duration / segmentLength);
 	//job.splitJobCount = parseInt(job.splitJobCount) == 0 ? alive_meshubs.length : parseInt(job.splitJobCount);
 
@@ -53,7 +53,7 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 		job_slice.meshubId = "--";
 		job_slice.progress = 0;
 		let prepend = "00" + i;
-		let suffix = prepend.substr(prepend.length-2);
+		let suffix = prepend.substr(prepend.length - 2);
 		job_slice.uploadFileName = `${job.uuid}-${suffix}.mp4`;
 		//alive_meshubs[assigned].assigned = i;
 		//alive_meshubs[assigned].save();
@@ -73,29 +73,29 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 
 async function job_check_processing(params) {
 	if (params.transcode_job == undefined ||
-		params.transcode_job.sourceUrl == undefined || 
-		params.transcode_job.job_type == undefined || 
-		params.resolutions == undefined || 
+		params.transcode_job.sourceUrl == undefined ||
+		params.transcode_job.job_type == undefined ||
+		params.resolutions == undefined ||
 		params.resolutions.length == undefined ||
 		params.resolutions[0].paramBitrate == undefined ||
 		params.resolutions[0].paramCrf == undefined ||
 		params.resolutions[0].paramPreset == undefined ||
 		params.resolutions[0].paramResolutionWidth == undefined ||
 		params.resolutions[0].paramResolutionHeight == undefined
-		) {
+	) {
 		console.log('not a valid job to check');
 		return null;
 	}
 	console.log(JSON.stringify(params, '', '\t'));
 	const g_job_test = await Job.findOne({
-				status: { "$in" : ["transcoding", "pending", "merging", "uploading"]},
-				sourceUrl: params.transcode_job.sourceUrl,
-				job_type: params.transcode_job.job_type,
-				paramBitrate: params.resolutions[0].paramBitrate,
-				paramCrf: params.resolutions[0].paramCrf,
-				paramPreset: params.resolutions[0].paramPreset,
-				paramResolutionWidth: params.resolutions[0].paramResolutionWidth,
-				paramResolutionHeight: params.resolutions[0].paramResolutionHeight
+		status: { "$in": ["transcoding", "pending", "merging", "uploading"] },
+		sourceUrl: params.transcode_job.sourceUrl,
+		job_type: params.transcode_job.job_type,
+		paramBitrate: params.resolutions[0].paramBitrate,
+		paramCrf: params.resolutions[0].paramCrf,
+		paramPreset: params.resolutions[0].paramPreset,
+		paramResolutionWidth: params.resolutions[0].paramResolutionWidth,
+		paramResolutionHeight: params.resolutions[0].paramResolutionHeight
 	}).populate("splitJobs", "-_id -__v -in_progress -meshubId -createdAt -updatedAt");
 	console.log("found\n" + JSON.stringify(g_job_test, '', '\t'));
 	return g_job_test;
@@ -235,10 +235,10 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 			setDefaultsOnInsert: true
 		});
 
-//		var first_splitJob = await SplitJob.findOne({
-//			"meshubId": meshubId,
-//			"progress": { "$ne": 100 }
-//		}).sort("uuid uploadFileName");
+		//		var first_splitJob = await SplitJob.findOne({
+		//			"meshubId": meshubId,
+		//			"progress": { "$ne": 100 }
+		//		}).sort("uuid uploadFileName");
 		var first_splitJob = null;
 
 		let job_json = {};
@@ -246,7 +246,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 		if (first_splitJob == null) {
 			const first_overdueJob = await SplitJob.findOne({
 				"in_progress": true,
-				"updatedAt" : { "$lte":Date.now()-1000*60*10 },
+				"updatedAt": { "$lte": Date.now() - 1000 * 60 * 10 },
 				"progress": { "$ne": 100 }
 			}).sort("uuid uploadFileName");
 			//console.log(`first_overdueJob: ${first_overdueJob}`);
@@ -315,7 +315,7 @@ router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
 		for (let i = 0; i < splitJobs.length; i++) {
 			let splitJob = splitJobs[i];
 			if (splitJob.progress == 100) splitJob.in_progress = false;
-			if (splitJob.in_progress == true && (Date.now() - splitJob.updatedAt) > 1000*60*10) {
+			if (splitJob.in_progress == true && (Date.now() - splitJob.updatedAt) > 1000 * 60 * 10) {
 				splitJob.meshubId = "--";
 				splitJob.in_progress = false;
 			}
@@ -440,34 +440,34 @@ router.post('/api/transcode/upload', function (req, res, next) {
 			if (concat_result == "") {
 				console.log(`upload: result_mp4=${job.result_mp4}`);
 			}
-//			let all_split_jobs_uploaded = true;
-//			let splitJobs = await SplitJob.find({ uuid: job_uuid });
-//
-//			for (let i = 0; i < splitJobs.length; i++) {
-//				let job_slice = splitJobs[i];
-//				let transcode_segment_exist = fs.existsSync(path.join(__dirname, `../public/upload/${job_slice.uploadFileName}`));
-//				if (transcode_segment_exist == false) {
-//					all_split_jobs_uploaded = false;
-//				}
-//				console.log(`job_slice for meshub ${job_slice.meshubId} : progress=${job_slice.progress}, segment_file=${job_slice.uploadFileName},segment_file_exists=${transcode_segment_exist}, dir=${__dirname}`);
-//			}
-//
-//			if (all_split_jobs_uploaded) {
-//				job.status = job.status == "uploading" ? "merging" : job.status;
-//				await job.save();
-//
-//				execute_concat(job_uuid, job.account, (result_mp4) => {
-//					let result_segment_exist = fs.existsSync(path.join(__dirname, `../public/result/${result_mp4}`))
-//					if (result_segment_exist == true) {
-//						job.overall_progress = 100;
-//						job.result_mp4 = `https://${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`;
-//						job.status = "finished";
-//						job.save();
-//						delete_old_mp4_files(job_uuid);
-//						console.log(`upload: result_mp4=${job.result_mp4}`);
-//					}
-//				})
-//			}
+			//			let all_split_jobs_uploaded = true;
+			//			let splitJobs = await SplitJob.find({ uuid: job_uuid });
+			//
+			//			for (let i = 0; i < splitJobs.length; i++) {
+			//				let job_slice = splitJobs[i];
+			//				let transcode_segment_exist = fs.existsSync(path.join(__dirname, `../public/upload/${job_slice.uploadFileName}`));
+			//				if (transcode_segment_exist == false) {
+			//					all_split_jobs_uploaded = false;
+			//				}
+			//				console.log(`job_slice for meshub ${job_slice.meshubId} : progress=${job_slice.progress}, segment_file=${job_slice.uploadFileName},segment_file_exists=${transcode_segment_exist}, dir=${__dirname}`);
+			//			}
+			//
+			//			if (all_split_jobs_uploaded) {
+			//				job.status = job.status == "uploading" ? "merging" : job.status;
+			//				await job.save();
+			//
+			//				execute_concat(job_uuid, job.account, (result_mp4) => {
+			//					let result_segment_exist = fs.existsSync(path.join(__dirname, `../public/result/${result_mp4}`))
+			//					if (result_segment_exist == true) {
+			//						job.overall_progress = 100;
+			//						job.result_mp4 = `https://${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`;
+			//						job.status = "finished";
+			//						job.save();
+			//						delete_old_mp4_files(job_uuid);
+			//						console.log(`upload: result_mp4=${job.result_mp4}`);
+			//					}
+			//				})
+			//			}
 		})();
 	});
 });
@@ -520,7 +520,7 @@ function execute_concat(uuid, account, cb) {
 	let cmd = `${__dirname}/test_concat.sh`;
 	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
 	let output_file_name = `${account}_${Math.random().toString(36).substring(7)}.mp4`;
-	
+
 	execFile(cmd, [uuid, path.join(__dirname, `../public/upload`), output_file_name], (err, stdout, stderr) => {
 		console.log(`concat finished: ${stdout}`);
 		return cb(output_file_name);
