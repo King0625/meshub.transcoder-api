@@ -415,8 +415,8 @@ router.post('/api/transcode/upload', function (req, res, next) {
 	let sampleFile = req.files.sampleFile;
 
 	// Use the mv() method to place the file somewhere on your server
-	let path = path.join(__dirname, `../public/upload/${sampleFile.name}`);
-	sampleFile.mv(path, function (err) {
+	let filePath = path.join(__dirname, `../public/upload/${sampleFile.name}`);
+	sampleFile.mv(filePath, function (err) {
 		if (err)
 			return res.status(500).send(err);
 
@@ -433,7 +433,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 				return res.status(200).json({ result: `failed to find job with uuid:${job_uuid}` });
 			}
 
-			res.status(200).json({ result: 'upload success', path: path });
+			res.status(200).json({ result: 'upload success', path: filePath });
 
 			//might trigger concat job
 			const concat_result = await concat_segments_to_result(job, job_uuid);
