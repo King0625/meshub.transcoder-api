@@ -2,8 +2,8 @@ FROM node:12
 
 WORKDIR /usr/app
 
-#RUN apt update
-#RUN apt install ffmpeg -y
+RUN apt update
+RUN apt install -y vim curl
 COPY ./api/package*.json ./
 RUN npm install
 COPY ./api ./
