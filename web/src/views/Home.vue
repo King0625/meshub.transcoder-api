@@ -210,7 +210,7 @@ export default {
       this.q.paramResolutionHeight = this.resolutionMap[this.q.resolution].height
       axios({
         method: 'post',
-        url: 'https://transcoder.meshstream.io/v2/api/transcode/job',
+        url: 'https://transcoder-api.meshstream.io/v2/api/transcode/job',
         headers: {
           'X-MESHUB-TRANSCODER-API-TOKEN': this.token
         },
@@ -238,7 +238,7 @@ export default {
     getProgress(uuid) {
       axios({
         method: 'get',
-        url: `https://transcoder.meshstream.io/v2/api/transcode/job?uuids[]=${uuid}`,
+        url: `https://transcoder-api.meshstream.io/v2/api/transcode/job?uuids[]=${uuid}`,
         headers: {
           'X-MESHUB-TRANSCODER-API-TOKEN': this.token
         }
@@ -270,7 +270,7 @@ export default {
     removeVideo() {
       axios({
         method: 'post',
-        url: `https://transcoder.meshstream.io/v2/api/transcode/remove_mp4`,
+        url: `https://transcoder-api.meshstream.io/v2/api/transcode/remove_mp4`,
         headers: {
           'X-MESHUB-TRANSCODER-API-TOKEN': this.token
         },
