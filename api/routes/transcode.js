@@ -111,7 +111,7 @@ function find_meshub_id_from_request(req) {
 	return meshubId;
 }
 
-router.post('/api/transcode/job', accountMiddleware, async function (req, res, next) {
+router.post('/job', accountMiddleware, async function (req, res, next) {
 	console.log(util.inspect(req.body));
 
 	const meshubs_with_new_status = await refresh_meshub_status();
@@ -194,7 +194,7 @@ router.post('/api/transcode/job', accountMiddleware, async function (req, res, n
 
 });
 
-router.get('/api/transcode/job', accountMiddleware, function (req, res, next) {
+router.get('/job', accountMiddleware, function (req, res, next) {
 	let job_uuids = req.query.uuids;
 	(async function () {
 		const job_jsons = [];
@@ -214,7 +214,7 @@ router.get('/api/transcode/job', accountMiddleware, function (req, res, next) {
 	})();
 });
 
-router.get('/api/transcode/job_meshub', function (req, res, next) {
+router.get('/job_meshub', function (req, res, next) {
 
 	let meshub_ip = req.clientIp;
 	console.log(`GET job_meshub from ${meshub_ip}`);
@@ -283,7 +283,7 @@ router.get('/api/transcode/job_meshub', function (req, res, next) {
 });
 
 /* How to handle hanging sub_jobs? */
-router.post('/api/transcode/job_meshub_progress', function (req, res, next) {
+router.post('/job_meshub_progress', function (req, res, next) {
 	let meshub_ip = req.clientIp;
 
 	let job_uuid = req.body.uuid;
@@ -381,7 +381,7 @@ async function concat_segments_to_result(job, job_uuid) {
 	}
 }
 
-router.post('/api/transcode/merge', function (req, res, next) {
+router.post('/merge', function (req, res, next) {
 	let job_uuid = req.body.uuid;
 	if (job_uuid == null) {
 		return res.status(400).json({ error: `job uuid not found in request body` });
@@ -402,7 +402,7 @@ router.post('/api/transcode/merge', function (req, res, next) {
 	})();
 });
 
-router.post('/api/transcode/upload', function (req, res, next) {
+router.post('/upload', function (req, res, next) {
 	console.log(`UPLOAD from ${req.clientIp},name=${req.files.sampleFile.name}`);
 	if (!req.files || Object.keys(req.files).length === 0) {
 		return res.status(400).send('No files were uploaded.');
@@ -469,7 +469,7 @@ router.post('/api/transcode/upload', function (req, res, next) {
 	});
 });
 
-router.post('/api/transcode/remove_mp4', accountMiddleware, async function (req, res, next) {
+router.post('/remove_mp4', accountMiddleware, async function (req, res, next) {
 	const execFileSync = require('child_process').execFileSync;
 	let cmd = `${__dirname}/remove_mp4.sh`;
 	const uuid = req.body.uuid;
