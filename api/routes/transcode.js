@@ -3,11 +3,12 @@ var router = express.Router();
 const transcodeController = require('../controllers/transcode');
 const { accountMiddleware } = require('../middleware/auth');
 const {
+	submitJobValidator,
 	getJobsByUuidsValidator,
 	removeMp4ByUuidValidator
 } = require('../middleware/validation');
 
-router.post('/job', accountMiddleware, transcodeController.submitJob);
+router.post('/job', [accountMiddleware, submitJobValidator], transcodeController.submitJob);
 router.get('/job', [accountMiddleware, getJobsByUuidsValidator], transcodeController.getJobsByUuids);
 router.get('/job_meshub', transcodeController.getJobByMeshub);
 /* How to handle hanging sub_jobs? */

@@ -70,20 +70,6 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 }
 
 async function job_check_processing(params) {
-  if (params.transcode_job == undefined ||
-    params.transcode_job.sourceUrl == undefined ||
-    params.transcode_job.job_type == undefined ||
-    params.resolutions == undefined ||
-    params.resolutions.length == undefined ||
-    params.resolutions[0].paramBitrate == undefined ||
-    params.resolutions[0].paramCrf == undefined ||
-    params.resolutions[0].paramPreset == undefined ||
-    params.resolutions[0].paramResolutionWidth == undefined ||
-    params.resolutions[0].paramResolutionHeight == undefined
-  ) {
-    console.log('not a valid job to check');
-    return null;
-  }
   console.log(JSON.stringify(params, '', '\t'));
   const g_job_test = await Job.findOne({
     status: { "$in": ["transcoding", "pending", "merging", "uploading"] },
@@ -190,6 +176,12 @@ function find_job_uuid_from_slice_filename(str) {
 }
 
 exports.submitJob = async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   console.log(util.inspect(req.body));
 
   const meshubs_with_new_status = await refresh_meshub_status();
@@ -222,14 +214,6 @@ exports.submitJob = async (req, res, next) => {
     return res.status(200).json({
       message: "No meshubs alive now!!!!"
     });
-  }
-
-  const job_type = g_job_data.transcode_job.job_type;
-  const imageSourceUrl = g_job_data.transcode_job.imageSourceUrl;
-  if (job_type == 'merge' && imageSourceUrl == undefined) {
-    return res.status(400).json({
-      error: "You have to provide imageSourceUrl when job_type is merge"
-    })
   }
 
   const previewFromSec = g_job_data.transcode_job.previewFromSec;

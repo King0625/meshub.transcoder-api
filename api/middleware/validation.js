@@ -1,6 +1,27 @@
 const { body, query, param } = require('express-validator');
 
 module.exports = {
+  submitJobValidator: [
+    body('transcode_job.sourceUrl').exists().withMessage("[body] 'transcode_job.sourceUrl' is required"),
+    body('transcode_job.job_type').exists().withMessage("[body] 'transcode_job.job_type' is required"),
+    body('transcode_job.meshubNumbers').exists().withMessage("[body] 'transcode_job.job_type' is required")
+      .isInt().withMessage("[body] 'transcode_job.job_type' must be an integer"),
+    body('transcode_job.imageSourceUrl').custom((value, { req }) => {
+      const jobType = req.body.transcode_job.job_type;
+      if (jobType === 'merge' && value === undefined) {
+        return false;
+      }
+      return true;
+    }).withMessage("[body] 'transcode_job.imageSourceUrl' must be provided when 'transcode_job.job_type' is `merge`"),
+    body('resolutions').exists().withMessage("[body] 'resolutions' is required")
+      .isArray({ min: 1 }).withMessage("[body] 'resolutions' must be an array that contains at least 1 element"),
+    body('resolutions.*.paramBitrate').exists().withMessage("[body] 'resolutions.*.paramBitrate' is required"),
+    body('resolutions.*.paramCrf').exists().withMessage("[body] 'resolutions.*.paramCrf' is required"),
+    body('resolutions.*.paramPreset').exists().withMessage("[body] 'resolutions.*.paramPreset' is required"),
+    body('resolutions.*.paramResolutionHeight').exists().withMessage("[body] 'resolutions.*.paramResolutionHeight' is required"),
+    body('resolutions.*.paramResolutionWidth').exists().withMessage("[body] 'resolutions.*.paramResolutionWidth' is required"),
+    body('resolutions.*.resolution').exists().withMessage("[body] 'resolutions.*.resolution' is required"),
+  ],
   getJobsByUuidsValidator: [
     query('uuids').exists().withMessage("[query string] 'uuids' is required")
       .isArray({ min: 1 }).withMessage("[query string] 'uuids' must be an array that contains at least 1 element")
