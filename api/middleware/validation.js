@@ -1,4 +1,12 @@
-const { body, query, param } = require('express-validator');
+const { body, query, param, validationResult } = require('express-validator');
+
+function validationMiddleware(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  next();
+}
 
 module.exports = {
   submitJobValidator: [
@@ -21,12 +29,15 @@ module.exports = {
     body('resolutions.*.paramResolutionHeight').exists().withMessage("[body] 'resolutions.*.paramResolutionHeight' is required"),
     body('resolutions.*.paramResolutionWidth').exists().withMessage("[body] 'resolutions.*.paramResolutionWidth' is required"),
     body('resolutions.*.resolution').exists().withMessage("[body] 'resolutions.*.resolution' is required"),
+    validationMiddleware
   ],
   getJobsByUuidsValidator: [
     query('uuids').exists().withMessage("[query string] 'uuids' is required")
-      .isArray({ min: 1 }).withMessage("[query string] 'uuids' must be an array that contains at least 1 element")
+      .isArray({ min: 1 }).withMessage("[query string] 'uuids' must be an array that contains at least 1 element"),
+    validationMiddleware
   ],
   removeMp4ByUuidValidator: [
-    body('uuid').exists().withMessage("[body] 'uuid' is required")
+    body('uuid').exists().withMessage("[body] 'uuid' is required"),
+    validationMiddleware
   ]
 }

@@ -3,7 +3,6 @@ const util = require('util');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { validationResult } = require('express-validator')
 
 const Job = require('../models/job');
 const Meshub = require('../models/meshub');
@@ -176,12 +175,6 @@ function find_job_uuid_from_slice_filename(str) {
 }
 
 exports.submitJob = async (req, res, next) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-
   console.log(util.inspect(req.body));
 
   const meshubs_with_new_status = await refresh_meshub_status();
@@ -257,12 +250,6 @@ exports.submitJob = async (req, res, next) => {
 }
 
 exports.getJobsByUuids = (req, res, next) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-
   let job_uuids = req.query.uuids;
   (async function () {
     const job_jsons = [];
@@ -461,12 +448,6 @@ exports.upload = (req, res, next) => {
 }
 
 exports.removeMp4ByUuid = async (req, res, next) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-
   const execFileSync = require('child_process').execFileSync;
   let cmd = `${__dirname}/remove_mp4.sh`;
   const uuid = req.body.uuid;
