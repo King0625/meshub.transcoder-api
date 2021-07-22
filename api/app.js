@@ -7,7 +7,6 @@ require('./db/mongoose');
 var transcodeRouter = require('./routes/transcode');
 var debugRouter = require('./routes/debug');
 var recoverRouter = require('./routes/recover_splitjobs');
-var usersRouter = require('./routes/users');
 var accountRouter = require('./routes/account');
 const requestIp = require('request-ip');
 const fileUpload = require('express-fileupload');
@@ -28,7 +27,6 @@ app.use('/v2/api/transcode', transcodeRouter);
 app.use('/v2/api/recover', recoverRouter);
 app.use('/v2/api/hello', debugRouter);
 app.use('/v2/api/account', accountRouter);
-app.use('/v2/users', usersRouter);
 app.set('json spaces', 2);
 
 module.exports = app;
