@@ -3,7 +3,6 @@ var router = express.Router();
 
 const Job = require('../models/job');
 const SplitJob = require('../models/splitJob');
-const Meshub = require('../models/meshub');
 
 async function job_dispatch(job, duration, hasPreviewData) {
 	let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 300);

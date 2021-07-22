@@ -111,9 +111,6 @@ function find_meshub_id_from_request(req) {
 	return meshubId;
 }
 
-//job_dispatch(g_job_test);
-//console.log(`test job:\n ${util.inspect(g_job_test)}`);
-
 router.post('/api/transcode/job', accountMiddleware, async function (req, res, next) {
 	console.log(util.inspect(req.body));
 
@@ -513,18 +510,6 @@ function delete_old_mp4_files(uuid) {
 	console.log(cmd);
 	let stdout = child_process.execSync(cmd);
 	console.log(`delete_mp4:${stdout.toString()}`);
-}
-
-function execute_concat(uuid, account, cb) {
-	const execFile = require('child_process').execFile;
-	let cmd = `${__dirname}/test_concat.sh`;
-	if (os.platform() == 'darwin') cmd = `${__dirname}/test_concat_mac.sh`;
-	let output_file_name = `${account}_${Math.random().toString(36).substring(7)}.mp4`;
-
-	execFile(cmd, [uuid, path.join(__dirname, `../public/upload`), output_file_name], (err, stdout, stderr) => {
-		console.log(`concat finished: ${stdout}`);
-		return cb(output_file_name);
-	})
 }
 
 function execute_concat_sync(uuid, account) {

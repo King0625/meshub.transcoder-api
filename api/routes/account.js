@@ -37,7 +37,6 @@ router.get('/:account', (req, res, next) => {
     .catch(err => {
       res.status(404).end();
     });
-  // return selectedAccount == null ? res.status(404).end() : res.status(200).json({ account: selectedAccount });
 })
 
 router.post('/:account', (req, res, next) => {
