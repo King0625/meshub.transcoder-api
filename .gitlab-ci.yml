@@ -24,10 +24,11 @@ deploy_source_code:
     - >
       if [ $CI_COMMIT_REF_NAME == "master" ]; then
         ssh -p 2222 $USER@$SERVER "
-          cd /home/meshdev/torii/torii_webui_v2;
+          cd /root/torii_webui;
           git pull;
-          sudo docker-compose down --rmi all;
-          sudo docker-compose up -d;
+          docker-compose down --rmi all;
+          docker-compose up -d;
+          docker push registry.gitlab.com/meshub/torii_webui/transcoder-api:2.2
           "
       fi
     - echo "Success deploymemnt~";
