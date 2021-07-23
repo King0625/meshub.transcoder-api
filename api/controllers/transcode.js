@@ -265,6 +265,7 @@ exports.getJobsByUuids = (req, res, next) => {
         job_jsons.push(job_json);
       }
     }
+    if (job_jsons.length === 0) return res.status(404).json({ message: "Jobs not found" });
     return res.status(200).json({ jobs: job_jsons });
   })();
 }
