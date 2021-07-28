@@ -29,7 +29,8 @@ async function job_dispatch(job, duration, alive_meshubs, meshubNumbers, hasPrev
   console.log(`Insert one job...`);
   console.log(JSON.stringify(job, '', '\t'));
 
-  let splitJobCount = job.splitJobCount;
+  let splitJobCount = job.splitJobCount > alive_meshubs.length ?
+    alive_meshubs.length : job.splitJobCount;
 
   let segmentLength = hasPreviewData ? Math.floor((job.previewToSec - job.previewFromSec) / splitJobCount) : Math.floor(duration / splitJobCount);
 
