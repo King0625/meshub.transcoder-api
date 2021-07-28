@@ -19,7 +19,7 @@ async function refresh_meshub_status() {
 }
 
 async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
-  let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 300);
+  let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 60);
   job.splitJobCount = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / segmentLength) : Math.ceil(duration / segmentLength);
   //job.splitJobCount = parseInt(job.splitJobCount) == 0 ? alive_meshubs.length : parseInt(job.splitJobCount);
 
