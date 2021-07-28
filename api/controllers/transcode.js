@@ -242,7 +242,7 @@ exports.submitJob = async (req, res, next) => {
       res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}` });
       return;
     }
-    await job_dispatch(job_info, duration, alive_meshubs, g_job_data.meshubNumbers, hasPreviewData);
+    await job_dispatch(job_info, duration, alive_meshubs, g_job_data.transcode_job.meshubNumbers, hasPreviewData);
   }
 
   res.status(200).json({
