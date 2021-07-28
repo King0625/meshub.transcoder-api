@@ -18,10 +18,11 @@ async function refresh_meshub_status() {
   return meshubs;
 }
 
-async function job_dispatch(job, duration, meshubNumbers, hasPreviewData) {
+async function job_dispatch(job, duration, alive_meshubs, meshubNumbers, hasPreviewData) {
   // let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 60);
   // job.splitJobCount = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / segmentLength) : Math.ceil(duration / segmentLength);
   //job.splitJobCount = parseInt(job.splitJobCount) == 0 ? alive_meshubs.length : parseInt(job.splitJobCount);
+
   job.splitJobCount = meshubNumbers;
 
   await Job.create(job);
@@ -47,8 +48,8 @@ async function job_dispatch(job, duration, meshubNumbers, hasPreviewData) {
     delete job_slice.overall_progress;
     job_slice.paramSeekBeginSec = paramSeekBeginSec;
     job_slice.paramSeekEndSec = paramSeekEndSec;
-    //job_slice.meshubId = alive_meshubs[i % alive_meshubs.length].ip_address;
-    job_slice.meshubId = "--";
+    job_slice.meshubId = alive_meshubs[i % alive_meshubs.length].ip_address;
+    // job_slice.meshubId = "--";
     job_slice.progress = 0;
     let prepend = "00" + i;
     let suffix = prepend.substr(prepend.length - 2);
@@ -241,7 +242,7 @@ exports.submitJob = async (req, res, next) => {
       res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}` });
       return;
     }
-    await job_dispatch(job_info, duration, g_job_data.meshubNumbers, hasPreviewData);
+    await job_dispatch(job_info, duration, alive_meshubs, g_job_data.meshubNumbers, hasPreviewData);
   }
 
   res.status(200).json({
