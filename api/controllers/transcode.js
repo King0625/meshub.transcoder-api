@@ -18,10 +18,11 @@ async function refresh_meshub_status() {
   return meshubs;
 }
 
-async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
-  let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 60);
-  job.splitJobCount = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / segmentLength) : Math.ceil(duration / segmentLength);
+async function job_dispatch(job, duration, meshubNumbers, hasPreviewData) {
+  // let segmentLength = hasPreviewData ? Math.min(Math.ceil(job.previewToSec - job.previewFromSec), 60) : Math.min(Math.ceil(duration), 60);
+  // job.splitJobCount = hasPreviewData ? Math.ceil((job.previewToSec - job.previewFromSec) / segmentLength) : Math.ceil(duration / segmentLength);
   //job.splitJobCount = parseInt(job.splitJobCount) == 0 ? alive_meshubs.length : parseInt(job.splitJobCount);
+  job.splitJobCount = meshubNumbers;
 
   await Job.create(job);
   console.log(`Insert one job...`);
@@ -29,7 +30,7 @@ async function job_dispatch(job, duration, alive_meshubs, hasPreviewData) {
 
   let splitJobCount = job.splitJobCount;
 
-  //let segmentLength = hasPreviewData ? Math.floor((job.previewToSec - job.previewFromSec) / splitJobCount) : Math.floor(duration / splitJobCount);
+  let segmentLength = hasPreviewData ? Math.floor((job.previewToSec - job.previewFromSec) / splitJobCount) : Math.floor(duration / splitJobCount);
 
   let paramSeekBeginSec = hasPreviewData ? job.previewFromSec : 0;
 
@@ -240,7 +241,7 @@ exports.submitJob = async (req, res, next) => {
       res.status(400).json({ error: `unable to probe duration of given url ${job_info.sourceUrl}` });
       return;
     }
-    await job_dispatch(job_info, duration, alive_meshubs, hasPreviewData);
+    await job_dispatch(job_info, duration, g_job_data.meshubNumbers, hasPreviewData);
   }
 
   res.status(200).json({
