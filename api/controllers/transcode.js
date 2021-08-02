@@ -7,7 +7,7 @@ const os = require('os');
 const Job = require('../models/job');
 const Meshub = require('../models/meshub');
 const SplitJob = require('../models/splitJob');
-const { jobProgressDataFields } = require('../utils/field');
+const { jobFields, splitJobFields } = require('../utils/field');
 
 let socketApi;
 
@@ -16,19 +16,13 @@ exports.setSocketApi = (socketIoObject) => {
 }
 
 function submitJobStatus(job) {
+  const jobData = job.toJSON();
   const jobProgressData = {
-    fields: jobProgressDataFields,
-    uuid: job.uuid,
-    timestamp: new Date(),
-    status: job.status,
-    progress: job.overall_progress,
-    pending_at: job.pending_at,
-    transcoding_at: job.transcoding_at,
-    uploading_at: job.uploading_at,
-    merging_at: job.merging_at,
-    finished_at: job.finished_at,
+    fields: jobFields,
+    splitJobFields,
+    ...jobData
   }
-  console.log(jobProgressData)
+  console.log(JSON.stringify(jobData))
   socketApi.sockets.emit('job-progress', jobProgressData)
 }
 
@@ -50,7 +44,6 @@ async function job_dispatch(job, duration, alive_meshubs, meshubNumbers, hasPrev
   job.splitJobCount = meshubNumbers;
 
   await Job.create(job);
-  submitJobStatus(job);
   console.log(`[Socket] Insert one job...`);
   console.log(JSON.stringify(job, '', '\t'));
 
@@ -93,6 +86,8 @@ async function job_dispatch(job, duration, alive_meshubs, meshubNumbers, hasPrev
     const insertMany = await SplitJob.insertMany(splitJobs);
     console.log(`Bulk insert split jobs...`);
     console.log(JSON.stringify(insertMany, '', '\t'));
+    const jobData = await Job.findOne({ uuid: job.uuid }).populate('splitJobs')
+    submitJobStatus(jobData);
   })();
 }
 
@@ -292,7 +287,7 @@ exports.getJobsByUuids = (req, res, next) => {
   (async function () {
     const job_jsons = [];
     for (job_uuid of job_uuids) {
-      let job = await job_find(job_uuid);
+      let job = await Job.findOne({ uuid: job_uuid }).populate('splitJobs');
       let job_json = {};
       if (job != null) {
         job_json = await job.toJSON();
@@ -379,7 +374,7 @@ exports.submitJobProgressByMeshub = (req, res, next) => {
   }
 
   (async function () {
-    let job = await job_find(job_uuid);
+    let job = await Job.findOne({ uuid: job_uuid }).populate('splitJobs');
     if (job == null) {
       return res.status(404).json({ error: `job with uuid not found: ${job_uuid}` });
     }
@@ -441,7 +436,7 @@ exports.merge = (req, res, next) => {
     return res.status(400).json({ error: `job uuid not found in request body` });
   }
   (async function () {
-    let job = await job_find(job_uuid);
+    let job = await Job.findOne({ uuid: job_uuid }).populate('splitJobs');
     if (job == null) {
       return res.status(404).json({ error: `job with uuid not found: ${job_uuid}` });
     }
@@ -479,7 +474,7 @@ exports.upload = (req, res, next) => {
     console.log(`upload: checking transcode job: ${job_uuid}`);
 
     (async function () {
-      let job = await job_find(job_uuid);
+      let job = await Job.findOne({ uuid: job_uuid }).populate('splitJobs');
       if (job == null) {
         return res.status(200).json({ result: `failed to find job with uuid:${job_uuid}` });
       }

@@ -24,10 +24,11 @@ exports.fixMissing = async function (req, res, next) {
 exports.getSelfJobs = async function (req, res, next) {
   const account = req.user.account;
 
-  const jobs = await Job.find({ account })
+  const jobs = await Job.find({ account }).populate("splitJobs")
   return res.status(200).json({
     message: "Fetch your own jobs successfully",
     fields: jobFields,
+    splitJobFields,
     data: jobs
   })
 }
@@ -98,10 +99,11 @@ exports.getJobsByAccountId = async function (req, res, next) {
     })
   }
 
-  const jobs = await Job.find({ account: accountData.account })
+  const jobs = await Job.find({ account: accountData.account }).populate('splitJobs');
   return res.status(200).json({
     message: "Fetch jobs by accountId successfully",
     fields: jobFields,
+    splitJobFields,
     data: jobs
   })
 }

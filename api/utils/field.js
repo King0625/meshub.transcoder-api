@@ -56,16 +56,5 @@ module.exports = {
     fieldInfo("createdAt", "createdAt"),
     fieldInfo("updatedAt", "updatedAt"),
     fieldInfo("dispatchedAt", "dispatchedAt"),
-  ],
-  jobProgressDataFields: [
-    fieldInfo("uuid", "uuid"),
-    fieldInfo("timestamp", "timestamp"),
-    fieldInfo("status", "status"),
-    fieldInfo("progress", "progress"),
-    fieldInfo("pending_at", "pendingAt"),
-    fieldInfo("transcoding_at", "transcodingAt"),
-    fieldInfo("uploading_at", "uploadingAt"),
-    fieldInfo("merging_at", "mergingAt"),
-    fieldInfo("finished_at", "finishedAt"),
   ]
 }
