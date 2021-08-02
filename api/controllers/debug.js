@@ -21,24 +21,12 @@ exports.fixMissing = async function (req, res, next) {
   return res.status(200).json(await Job.find({}));
 }
 
-exports.getJobsByAccountId = async function (req, res, next) {
-  const { accountId } = req.params;
-  const accountData = await Account.findOne({ _id: accountId });
-  if (!accountData) {
-    return res.status(404).json({
-      message: "AccountId not found"
-    })
-  }
+exports.getSelfJobs = async function (req, res, next) {
+  const account = req.user.account;
 
-  if (req.user.account !== accountData.account && req.user.account !== process.env.ADMIN_USER) {
-    return res.status(403).json({
-      message: "Forbidden"
-    })
-  }
-
-  const jobs = await Job.find({ account: accountData.account })
+  const jobs = await Job.find({ account })
   return res.status(200).json({
-    message: "Fetch jobs by accountId successfully",
+    message: "Fetch your own jobs successfully",
     fields: jobFields,
     data: jobs
   })
@@ -99,4 +87,21 @@ exports.listRunningJobDetails = async function (req, res, next) {
     splitJobFields,
     data: jobs
   });
+}
+
+exports.getJobsByAccountId = async function (req, res, next) {
+  const { accountId } = req.params;
+  const accountData = await Account.findOne({ _id: accountId });
+  if (!accountData) {
+    return res.status(404).json({
+      message: "AccountId not found"
+    })
+  }
+
+  const jobs = await Job.find({ account: accountData.account })
+  return res.status(200).json({
+    message: "Fetch jobs by accountId successfully",
+    fields: jobFields,
+    data: jobs
+  })
 }
