@@ -72,6 +72,26 @@ const jobSchema = new mongoose.Schema({
   mp4_removed: {
     type: Boolean,
     default: false
+  },
+  pending_at: {
+    type: Date,
+    default: null
+  },
+  transcoding_at: {
+    type: Date,
+    default: null
+  },
+  uploading_at: {
+    type: Date,
+    default: null
+  },
+  merging_at: {
+    type: Date,
+    default: null
+  },
+  finished_at: {
+    type: Date,
+    default: null
   }
 }, {
   id: false,

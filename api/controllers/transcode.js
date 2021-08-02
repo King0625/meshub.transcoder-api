@@ -7,6 +7,30 @@ const os = require('os');
 const Job = require('../models/job');
 const Meshub = require('../models/meshub');
 const SplitJob = require('../models/splitJob');
+const { jobProgressDataFields } = require('../utils/field');
+
+let socketApi;
+
+exports.setSocketApi = (socketIoObject) => {
+  socketApi = socketIoObject
+}
+
+function submitJobStatus(job) {
+  const jobProgressData = {
+    fields: jobProgressDataFields,
+    uuid: job.uuid,
+    timestamp: new Date(),
+    status: job.status,
+    progress: job.overall_progress,
+    pending_at: job.pending_at,
+    transcoding_at: job.transcoding_at,
+    uploading_at: job.uploading_at,
+    merging_at: job.merging_at,
+    finished_at: job.finished_at,
+  }
+  console.log(jobProgressData)
+  socketApi.sockets.emit('job-progress', jobProgressData)
+}
 
 async function refresh_meshub_status() {
   const meshubs = await Meshub.find({});
@@ -26,7 +50,8 @@ async function job_dispatch(job, duration, alive_meshubs, meshubNumbers, hasPrev
   job.splitJobCount = meshubNumbers;
 
   await Job.create(job);
-  console.log(`Insert one job...`);
+  submitJobStatus(job);
+  console.log(`[Socket] Insert one job...`);
   console.log(JSON.stringify(job, '', '\t'));
 
   let splitJobCount = job.splitJobCount > alive_meshubs.length ?
@@ -115,17 +140,26 @@ async function concat_segments_to_result(job, job_uuid) {
   }
 
   if (all_split_jobs_uploaded) {
-    job.status = job.status == "uploading" ? "merging" : job.status;
+    if (job.status == "uploading") {
+      job.merging_at = new Date();
+      job.status = "merging";
+    }
+
     await job.save();
 
+    submitJobStatus(job);
+    console.log('[socket] Start to merge mp4...')
     var result_mp4 = execute_concat_sync(job_uuid, job.account);
     let result_segment_exist = fs.existsSync(path.join(__dirname, `../public/result/${result_mp4}`));
     if (result_segment_exist == true) {
       job.overall_progress = 100;
       job.result_mp4 = `https://${process.env.DOMAIN_NAME}/v2/result/${result_mp4}`;
       job.status = "finished";
+      job.finished_at = new Date();
       job.save();
       delete_old_mp4_files(job_uuid);
+      submitJobStatus(job);
+      console.log('[socket] Job finished...')
       return "";
     }
     else {
@@ -234,7 +268,8 @@ exports.submitJob = async (req, res, next) => {
     g_job.uuid = uuidv4();
     const job_info = {};
     Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
-
+    job_info.status = 'pending';
+    job_info.pending_at = new Date();
     try {
       duration = execute_probe_duration(job_info.sourceUrl);
       console.log(`probe duration: ${duration}`);
@@ -379,12 +414,21 @@ exports.submitJobProgressByMeshub = (req, res, next) => {
 
     if (job.overall_progress == 100) {
       job.overall_progress = 99;
-      job.status = job.status == "transcoding" ? "uploading" : job.status;
+      console.log('[socket] Start to upload splited mp4...')
+      if (job.status == "transcoding") {
+        job.status = "uploading";
+        job.uploading_at = !job.uploading_at ? new Date() : job.uploading_at;
+      }
     } else {
-      job.status = job.status == "pending" ? "transcoding" : job.status;
+      console.log('[socket] Transcoding...')
+      if (job.status == "pending") {
+        job.status = "transcoding";
+        job.transcoding_at = !job.transcoding_at ? new Date() : job.transcoding_at
+      }
     }
 
     await job.save();
+    submitJobStatus(job);
 
     console.log(`POST job_meshub_progress from ${meshub_ip}, uuid=${req.body.uuid}, paramSeekBeginSec=${req.body.param_seek_begin_sec}, progress=${req.body.progress}, overall_progress=${job.overall_progress}`);
     return res.status(200).end();

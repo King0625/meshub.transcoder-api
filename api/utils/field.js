@@ -27,9 +27,15 @@ module.exports = {
     fieldInfo("paramResolutionHeight", "paramResolutionHeight"),
     fieldInfo("paramPreset", "paramPreset"),
     fieldInfo("paramPrcreatedAteset", "createdAt"),
+    fieldInfo("createdAt", "createdAt"),
     fieldInfo("updatedAt", "updatedAt"),
     fieldInfo("result_mp4", "resultMp4"),
-    fieldInfo("mp4_removed", "mp4Removed")
+    fieldInfo("mp4_removed", "mp4Removed"),
+    fieldInfo("pending_at", "pendingAt"),
+    fieldInfo("transcoding_at", "transcodingAt"),
+    fieldInfo("uploading_at", "uploadingAt"),
+    fieldInfo("merging_at", "mergingAt"),
+    fieldInfo("finished_at", "finishedAt"),
   ],
   splitJobFields: [
     fieldInfo("uuid", "uuid"),
@@ -50,5 +56,16 @@ module.exports = {
     fieldInfo("createdAt", "createdAt"),
     fieldInfo("updatedAt", "updatedAt"),
     fieldInfo("dispatchedAt", "dispatchedAt"),
+  ],
+  jobProgressDataFields: [
+    fieldInfo("uuid", "uuid"),
+    fieldInfo("timestamp", "timestamp"),
+    fieldInfo("status", "status"),
+    fieldInfo("progress", "progress"),
+    fieldInfo("pending_at", "pendingAt"),
+    fieldInfo("transcoding_at", "transcodingAt"),
+    fieldInfo("uploading_at", "uploadingAt"),
+    fieldInfo("merging_at", "mergingAt"),
+    fieldInfo("finished_at", "finishedAt"),
   ]
 }
