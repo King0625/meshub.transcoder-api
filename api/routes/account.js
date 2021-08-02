@@ -1,13 +1,15 @@
 var express = require('express');
 var router = express.Router();
-const { adminMiddleware } = require('../middleware/auth');
+const { accountMiddleware, adminMiddleware } = require('../middleware/auth');
+const { createAccountValidator, loginAccountValidator, resetPasswordValidator } = require('../middleware/validation');
 const accountController = require('../controllers/account');
 
-router.use(adminMiddleware);
+router.post('/login', loginAccountValidator, accountController.loginAccount);
 
-router.get('/', accountController.listAccounts)
-router.get('/:account', accountController.getAccount)
-router.post('/:account', accountController.createAccount)
-router.delete('/:account', accountController.deleteAccount)
+router.use(accountMiddleware, adminMiddleware);
+router.get('/', accountController.listAccounts);
+router.post('/', createAccountValidator, accountController.createAccount);
+router.put('/reset-password/:accountId', resetPasswordValidator, accountController.resetPassword);
+router.delete('/:accountId', accountController.deleteAccount);
 
 module.exports = router;

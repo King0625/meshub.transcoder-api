@@ -1,38 +1,20 @@
-const Account = require('../models/account');
+const expressJwt = require('express-jwt');
 
-exports.accountMiddleware = (req, res, next) => {
-  const token = req.header('X-MESHUB-TRANSCODER-API-TOKEN') || '';
-  Account.findOne({ token })
-    .then(account => {
-      if (account == null) {
-        return res.status(403).json({
-          message: "Request forbidden"
-        });
-      }
-      account.time_use = new Date();
-      account.save();
-      req.account = account.account;
-      next();
-    })
-    .catch(err => {
-      return res.status(500).json({ "message": "Server error." });
-    })
-}
+exports.accountMiddleware = [
+  expressJwt({
+    secret: process.env.JWT_SECRET,
+    algorithms: [process.env.JWT_ALGORITHM]
+  }),
+  function (err, req, res, next) {
+    res.status(err.status).json(err);
+  }
+]
 
 exports.adminMiddleware = (req, res, next) => {
-  const token = req.header('X-MESHUB-TRANSCODER-API-TOKEN') || '';
-  Account.findOne({ token })
-    .then(account => {
-      if (account == null || account != null && account.account != 'admin') {
-        return res.status(403).json({
-          message: "invalid token"
-        });
-      }
-      account.time_use = new Date();
-      account.save();
-      next();
+  if (req.user.account !== process.env.ADMIN_USER) {
+    return res.status(403).json({
+      message: "Forbidden"
     })
-    .catch(err => {
-      return res.status(500).json({ "message": "Server error." });
-    })
+  }
+  next();
 }

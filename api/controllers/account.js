@@ -1,20 +1,54 @@
 const Account = require('../models/account');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { accountFields } = require('../utils/field');
 
-function randomString() {
-  var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-  var string_length = 8;
-  var randomstring = '';
-  for (var i = 0; i < string_length; i++) {
-    var rnum = Math.floor(Math.random() * chars.length);
-    randomstring += chars.substring(rnum, rnum + 1);
+exports.loginAccount = async (req, res, next) => {
+  const { account, password } = req.body;
+
+  const accountData = await Account.findOne({ account });
+  if (!accountData) {
+    return res.status(400).json({
+      message: "Wrong account or password"
+    });
   }
-  return randomstring;
+
+  try {
+    const hashedPassword = accountData.password;
+    const compare = bcrypt.compareSync(password, hashedPassword);
+    if (!compare) {
+      return res.status(400).json({
+        message: "Wrong username or password"
+      });
+    }
+
+    const token = jwt.sign({ account }, process.env.JWT_SECRET, {
+      algorithm: process.env.JWT_ALGORITHM,
+      expiresIn: 7 * 24 * 60 * 60
+    });
+
+    accountData.time_use = new Date();
+    await accountData.save();
+    return res.status(200).json({
+      message: "Login successfully",
+      token
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "[Login] server side error"
+    })
+  }
+
 }
 
 exports.listAccounts = (req, res, next) => {
-  Account.find({}).select('-_id -__v')
+  Account.find({}).select('-__v -password')
     .then(accounts => {
-      res.status(200).json({ accounts });
+      res.status(200).json({
+        fields: accountFields,
+        accounts
+      });
       console.log(accounts);
     })
     .catch(err => {
@@ -23,21 +57,14 @@ exports.listAccounts = (req, res, next) => {
     });
 }
 
-exports.getAccount = (req, res, next) => {
-  Account.findOne({ account: req.params.account }).select('-_id -__v')
-    .then(account => {
-      console.log(account);
-      res.status(200).json({ account });
-    })
-    .catch(err => {
-      res.status(404).end();
-    });
-}
-
 exports.createAccount = (req, res, next) => {
+  const { account, password } = req.body;
+
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   const newAccount = new Account({
-    account: req.params.account,
-    token: randomString()
+    account,
+    password: hashedPassword
   });
 
   newAccount.save()
@@ -48,13 +75,49 @@ exports.createAccount = (req, res, next) => {
       });
     })
     .catch(err => {
+      console.log(err);
       res.status(409).json({ message: "Account already in use!" });
     });
 }
 
+exports.resetPassword = async (req, res, next) => {
+  const { accountId } = req.params;
+  const { password } = req.body;
+  const account = await Account.findOne({ _id: accountId });
+  if (!account)
+    return res.status(404).json({
+      message: "Account not found"
+    })
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  try {
+    account.password = hashedPassword;
+    await account.save();
+    return res.status(200).json({
+      message: "Reset password successfully"
+    })
+  } catch (error) {
+    console.log("reset account error:", error);
+    return res.status(500).json({
+      message: "Server side error"
+    })
+  }
+}
+
 exports.deleteAccount = (req, res, next) => {
-  Account.findOneAndDelete({ account: req.params.account }, err => {
-    if (err) return res.status(404).end();
+  const { accountId } = req.params;
+  Account.findOneAndDelete({ _id: accountId }, (err, docs) => {
+    console.log(err);
+    console.log(docs);
+    if (err) {
+      return res.status(500).json({
+        message: "Server side error"
+      })
+    }
+    if (!docs) {
+      return res.status(404).json({
+        message: "Account not found"
+      });
+    }
     res.status(200).json({ "message": "Account deleted successfully." });
   });
 }

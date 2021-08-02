@@ -230,7 +230,7 @@ exports.submitJob = async (req, res, next) => {
   }
 
   for (g_job of g_jobs) {
-    g_job.account = req.account;
+    g_job.account = req.user.account;
     g_job.uuid = uuidv4();
     const job_info = {};
     Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
@@ -455,6 +455,7 @@ exports.removeMp4ByUuid = async (req, res, next) => {
   const execFileSync = require('child_process').execFileSync;
   let cmd = `${__dirname}/remove_mp4.sh`;
   const uuid = req.body.uuid;
+  const requestAccount = req.user.account;
   const finishedJob = await Job.findOne({
     uuid: uuid,
     result_mp4: { $ne: undefined }
@@ -463,6 +464,18 @@ exports.removeMp4ByUuid = async (req, res, next) => {
   if (finishedJob) {
     const fileName = finishedJob.result_mp4;
     const account = finishedJob.account;
+    if (account !== requestAccount) {
+      return res.status(403).json({
+        message: "Forbidden"
+      })
+    }
+
+    if (finishedJob.mp4_removed) {
+      return res.status(400).json({
+        message: "Mp4 has been removed before"
+      })
+    }
+
     console.log(fileName);
     var reg = new RegExp(`https:\/\/${process.env.DOMAIN_NAME_REGEX}\/v2\/result\/` + account + '_([0-9A-Za-z]+)\.mp4');
     //const parsedFileName = fileName.match(/https:\/\/torii-demo\.meshub\.io\/v2\/result\/([0-9A-Za-z]+)\.mp4/)[1];
@@ -470,6 +483,10 @@ exports.removeMp4ByUuid = async (req, res, next) => {
     console.log(parsedFileName);
     const stdout = execFileSync(cmd, [`${path.join(__dirname, `../public/result`)}/${parsedFileName}`]);
     console.log(`Finish deleting ${parsedFileName}.mp4: ${stdout}`);
+
+    finishedJob.mp4_removed = true;
+    await finishedJob.save();
+
     return res.status(200).json({
       "error": false,
       "uuid": uuid,

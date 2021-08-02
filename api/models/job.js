@@ -68,6 +68,10 @@ const jobSchema = new mongoose.Schema({
   result_mp4: {
     type: String,
     trim: true
+  },
+  mp4_removed: {
+    type: Boolean,
+    default: false
   }
 }, {
   id: false,

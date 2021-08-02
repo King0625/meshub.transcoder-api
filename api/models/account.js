@@ -7,10 +7,9 @@ const accountSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  token: {
+  password: {
     type: String,
     required: true,
-    unique: true,
     trim: true
   },
   time_create: {

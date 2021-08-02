@@ -39,5 +39,22 @@ module.exports = {
   removeMp4ByUuidValidator: [
     body('uuid').exists().withMessage("[body] 'uuid' is required"),
     validationMiddleware
-  ]
+  ],
+  createAccountValidator: [
+    body('account').exists().withMessage("[body] 'account' is required")
+      .isLength({ min: 3 }).withMessage("[body] 'account' must contain at least 3 characters"),
+    body('password').exists().withMessage("[body] 'password' is required")
+      .isLength({ min: 6 }).withMessage("[body] 'password' must contain at least 6 characters"),
+    validationMiddleware
+  ],
+  loginAccountValidator: [
+    body('account').exists().withMessage("[body] 'account' is required"),
+    body('password').exists().withMessage("[body] 'password' is required"),
+    validationMiddleware
+  ],
+  resetPasswordValidator: [
+    body('password').exists().withMessage("[body] 'password' is required")
+      .isLength({ min: 6 }).withMessage("[body] 'password' must contain at least 6 characters"),
+    validationMiddleware
+  ],
 }
