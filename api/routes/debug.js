@@ -6,7 +6,7 @@ const debugController = require('../controllers/debug');
 router.get('/fixMissing', debugController.fixMissing);
 
 router.use(accountMiddleware);
-router.get('/accounts/jobs', debugController.getJobsByAccountId)
+router.get('/accounts/jobs', debugController.getSelfJobs)
 
 router.use(adminMiddleware);
 router.get('/workers', debugController.getAllWorkers);
