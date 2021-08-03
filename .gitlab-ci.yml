@@ -28,7 +28,7 @@ deploy_source_code:
           git pull;
           docker-compose down --rmi all;
           docker-compose up -d;
-          docker push registry.gitlab.com/meshub/torii_webui/transcoder-api:2.2
+          docker push registry.gitlab.com/meshub/torii_webui/transcoder-api:2.3
           "
       fi
     - echo "Success deploymemnt~";
