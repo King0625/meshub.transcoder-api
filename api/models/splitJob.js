@@ -82,9 +82,13 @@ const splitJobSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform: function (doc, ret) {
-      ret.dispatchedAt = dayjs(ret.dispatchedAt).format('YYYY/MM/DD HH:mm:ss');
-      ret.createdAt = dayjs(ret.createdAt).format('YYYY/MM/DD HH:mm:ss');
-      ret.updatedAt = dayjs(ret.updatedAt).format('YYYY/MM/DD HH:mm:ss');
+      ret.in_progress = ret.in_progress.toString();
+      ret.dispatchedAt = ret.dispatchedAt ?
+        dayjs(ret.dispatchedAt).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.createdAt = ret.createdAt ?
+        dayjs(ret.createdAt).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.updatedAt = ret.updatedAt ?
+        dayjs(ret.updatedAt).format('YYYY/MM/DD HH:mm:ss') : null;
     }
   }
 });

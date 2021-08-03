@@ -101,13 +101,21 @@ const jobSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform: function (doc, ret) {
-      ret.pending_at = dayjs(ret.pending_at).format('YYYY/MM/DD HH:mm:ss');
-      ret.transcoding_at = dayjs(ret.transcoding_at).format('YYYY/MM/DD HH:mm:ss');
-      ret.uploading_at = dayjs(ret.uploading_at).format('YYYY/MM/DD HH:mm:ss');
-      ret.merging_at = dayjs(ret.merging_at).format('YYYY/MM/DD HH:mm:ss');
-      ret.finished_at = dayjs(ret.finished_at).format('YYYY/MM/DD HH:mm:ss');
-      ret.createdAt = dayjs(ret.createdAt).format('YYYY/MM/DD HH:mm:ss');
-      ret.updatedAt = dayjs(ret.updatedAt).format('YYYY/MM/DD HH:mm:ss');
+      ret.mp4_removed = ret.mp4_removed.toString();
+      ret.pending_at = ret.pending_at ?
+        dayjs(ret.pending_at).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.transcoding_at = ret.transcoding_at ?
+        dayjs(ret.transcoding_at).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.uploading_at = ret.uploading_at ?
+        dayjs(ret.uploading_at).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.merging_at = ret.merging_at ?
+        dayjs(ret.merging_at).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.finished_at = ret.finished_at ?
+        dayjs(ret.finished_at).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.createdAt = ret.createdAt ?
+        dayjs(ret.createdAt).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.updatedAt = ret.updatedAt ?
+        dayjs(ret.updatedAt).format('YYYY/MM/DD HH:mm:ss') : null;
     }
   }
 });

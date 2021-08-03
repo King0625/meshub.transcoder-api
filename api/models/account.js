@@ -28,8 +28,10 @@ const accountSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform: function (doc, ret) {
-      ret.time_create = dayjs(ret.time_create).format('YYYY/MM/DD HH:mm:ss');
-      ret.time_use = dayjs(ret.time_use).format('YYYY/MM/DD HH:mm:ss');
+      ret.time_create = ret.time_create ?
+        dayjs(ret.time_create).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.time_use = ret.time_use ?
+        dayjs(ret.time_use).format('YYYY/MM/DD HH:mm:ss') : null;
     }
   }
 });

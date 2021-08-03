@@ -31,7 +31,9 @@ const meshubSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform: function (doc, ret) {
-      ret.timestamp = dayjs(ret.timestamp).format('YYYY/MM/DD HH:mm:ss');
+      ret.timestamp = ret.timestamp ?
+        dayjs(ret.timestamp).format('YYYY/MM/DD HH:mm:ss') : null;
+      ret.dead = ret.dead.toString();
     }
   }
 });
