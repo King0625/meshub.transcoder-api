@@ -26,7 +26,6 @@ module.exports = {
     fieldInfo("paramResolutionWidth", "paramResolutionWidth"),
     fieldInfo("paramResolutionHeight", "paramResolutionHeight"),
     fieldInfo("paramPreset", "paramPreset"),
-    fieldInfo("paramPrcreatedAteset", "createdAt"),
     fieldInfo("createdAt", "createdAt"),
     fieldInfo("updatedAt", "updatedAt"),
     fieldInfo("result_mp4", "resultMp4"),
