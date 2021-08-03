@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const dayjs = require('dayjs');
 
 const accountSchema = new mongoose.Schema({
   account: {
@@ -21,6 +22,15 @@ const accountSchema = new mongoose.Schema({
     type: Date,
     required: true,
     default: new Date
+  }
+}, {
+  id: false,
+  toJSON: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      ret.time_create = dayjs(ret.time_create).format('YYYY/MM/DD HH:mm:ss');
+      ret.time_use = dayjs(ret.time_use).format('YYYY/MM/DD HH:mm:ss');
+    }
   }
 });
 

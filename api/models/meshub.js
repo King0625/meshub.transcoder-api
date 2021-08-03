@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const dayjs = require('dayjs');
 
 const meshubSchema = new mongoose.Schema({
   ip_address: {
@@ -24,6 +25,14 @@ const meshubSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  }
+}, {
+  id: false,
+  toJSON: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      ret.timestamp = dayjs(ret.timestamp).format('YYYY/MM/DD HH:mm:ss');
+    }
   }
 });
 

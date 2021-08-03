@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const dayjs = require('dayjs');
 
 const jobSchema = new mongoose.Schema({
   account: {
@@ -97,7 +98,18 @@ const jobSchema = new mongoose.Schema({
   id: false,
   timestamps: true,
   toObject: { virtuals: true },
-  toJSON: { virtuals: true }
+  toJSON: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      ret.pending_at = dayjs(ret.pending_at).format('YYYY/MM/DD HH:mm:ss');
+      ret.transcoding_at = dayjs(ret.transcoding_at).format('YYYY/MM/DD HH:mm:ss');
+      ret.uploading_at = dayjs(ret.uploading_at).format('YYYY/MM/DD HH:mm:ss');
+      ret.merging_at = dayjs(ret.merging_at).format('YYYY/MM/DD HH:mm:ss');
+      ret.finished_at = dayjs(ret.finished_at).format('YYYY/MM/DD HH:mm:ss');
+      ret.createdAt = dayjs(ret.createdAt).format('YYYY/MM/DD HH:mm:ss');
+      ret.updatedAt = dayjs(ret.updatedAt).format('YYYY/MM/DD HH:mm:ss');
+    }
+  }
 });
 
 jobSchema.virtual('splitJobs', {

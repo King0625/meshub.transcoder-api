@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const dayjs = require('dayjs');
 
 const splitJobSchema = new mongoose.Schema({
   sourceUrl: {
@@ -75,7 +76,18 @@ const splitJobSchema = new mongoose.Schema({
   dispatchedAt: {
     type: Date,
   }
-}, { timestamps: true });
+}, {
+  id: false,
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      ret.dispatchedAt = dayjs(ret.dispatchedAt).format('YYYY/MM/DD HH:mm:ss');
+      ret.createdAt = dayjs(ret.createdAt).format('YYYY/MM/DD HH:mm:ss');
+      ret.updatedAt = dayjs(ret.updatedAt).format('YYYY/MM/DD HH:mm:ss');
+    }
+  }
+});
 
 const SplitJob = mongoose.model('SplitJob', splitJobSchema);
 
