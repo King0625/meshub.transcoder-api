@@ -15,12 +15,12 @@ const accountSchema = new mongoose.Schema({
   time_create: {
     type: Date,
     required: true,
-    default: new Date()
+    default: new Date
   },
   time_use: {
     type: Date,
     required: true,
-    default: new Date()
+    default: new Date
   }
 });
 
