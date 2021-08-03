@@ -31,6 +31,7 @@ exports.loginAccount = async (req, res, next) => {
     await accountData.save();
     return res.status(200).json({
       message: "Login successfully",
+      isAdmin: account === process.env.ADMIN_USER,
       token
     })
 
