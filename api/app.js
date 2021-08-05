@@ -40,8 +40,7 @@ const io = require('socket.io')(server);
 io.on('connection', socket => {
   const { jwtToken } = socket.handshake.query;
 
-  // jwt.verify(jwtToken, process.env.JWT_SECRET, async function (err, payload) {
-  jwt.verify(jwtToken, "IXHtVpHqVGtgC+3ilF+rMpChQRl2CLTUAvN58+4+cHupgTm4WIGkFmQZkVEM7y2X988=", async function (err, payload) {
+  jwt.verify(jwtToken, process.env.JWT_SECRET, async function (err, payload) {
     if (err) {
       socket.emit('unauthorized', err);
       socket.disconnect(true);
