@@ -7,7 +7,6 @@ const os = require('os');
 const Job = require('../models/job');
 const Meshub = require('../models/meshub');
 const SplitJob = require('../models/splitJob');
-const { jobFields, splitJobFields } = require('../utils/field');
 
 let socketApi;
 
@@ -17,15 +16,10 @@ exports.setSocketApi = (socketIoObject) => {
 
 function submitJobStatus(job) {
   const jobData = job.toJSON();
-  const jobProgressData = {
-    fields: jobFields,
-    splitJobFields,
-    ...jobData
-  }
   console.log(JSON.stringify(jobData))
-  const account = jobProgressData.account;
+  const account = jobData.account;
   console.log("Emit this event to:", process.env.ADMIN_USER, ",", account)
-  socketApi.to(process.env.ADMIN_USER).to(account).emit('job-progress', jobProgressData)
+  socketApi.to(process.env.ADMIN_USER).to(account).emit('job-progress', jobData)
 }
 
 async function refresh_meshub_status() {
