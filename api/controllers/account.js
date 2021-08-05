@@ -44,11 +44,16 @@ exports.loginAccount = async (req, res, next) => {
 }
 
 exports.listAccounts = (req, res, next) => {
-  Account.find({}).select('-__v -password')
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) || 1,
+    limit: parseInt(req.query.limit, 10) || 10
+  }
+
+  Account.paginate({}, pageOptions)
     .then(accounts => {
       res.status(200).json({
         fields: accountFields,
-        accounts
+        data: accounts
       });
       console.log(accounts);
     })

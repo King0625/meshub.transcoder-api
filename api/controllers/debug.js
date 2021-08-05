@@ -24,7 +24,13 @@ exports.fixMissing = async function (req, res, next) {
 exports.getSelfJobs = async function (req, res, next) {
   const account = req.user.account;
 
-  const jobs = await Job.find({ account }).populate("splitJobs")
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) || 1,
+    limit: parseInt(req.query.limit, 10) || 10,
+    populate: 'splitJobs'
+  }
+
+  const jobs = await Job.paginate({ account }, pageOptions)
   return res.status(200).json({
     message: "Fetch your own jobs successfully",
     fields: jobFields,
@@ -34,9 +40,14 @@ exports.getSelfJobs = async function (req, res, next) {
 }
 
 exports.getAllWorkers = async function (req, res, next) {
-  const meshubs = await Meshub.find({});
-  console.log(meshubs)
-  for (meshub of meshubs) {
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) || 1,
+    limit: parseInt(req.query.limit, 10) || 10
+  }
+
+  const meshubs = await Meshub.paginate({}, pageOptions);
+
+  for (meshub of meshubs.docs) {
     meshub.dead = (Date.now() - meshub.timestamp.getTime() > 1000 * 60 * 10);
     meshub.time = meshub.timestamp.toLocaleString('en-US', { timeZone: 'Asia/Taipei' })
     await meshub.save();
@@ -71,7 +82,11 @@ exports.getSplitJobsByWorkerId = async function (req, res, next) {
     })
   }
 
-  const splitJobs = await SplitJob.find({ meshubId: meshub.ip_address });
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) || 1,
+    limit: parseInt(req.query.limit, 10) || 10
+  }
+  const splitJobs = await SplitJob.paginate({ meshubId: meshub.ip_address }, pageOptions);
 
   return res.status(200).json({
     message: "Fetch splitjobs by workerId successfully",
@@ -81,7 +96,14 @@ exports.getSplitJobsByWorkerId = async function (req, res, next) {
 }
 
 exports.listRunningJobDetails = async function (req, res, next) {
-  const jobs = await Job.find({ "status": { "$ne": "finished" } }).sort({ updatedAt: -1 }).limit(50).populate('splitJobs');
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) || 1,
+    limit: parseInt(req.query.limit, 10) || 10,
+    sort: { updatedAt: -1 },
+    populate: 'splitJobs'
+  }
+
+  const jobs = await Job.paginate({ status: { "$ne": "finished" } }, pageOptions);
   res.status(200).json({
     message: "Fetch running jobs successfully",
     fields: jobFields,
@@ -99,7 +121,13 @@ exports.getJobsByAccountId = async function (req, res, next) {
     })
   }
 
-  const jobs = await Job.find({ account: accountData.account }).populate('splitJobs');
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) || 1,
+    limit: parseInt(req.query.limit, 10) || 10,
+    populate: 'splitJobs'
+  }
+
+  const jobs = await Job.paginate({ account: accountData.account }, pageOptions)
   return res.status(200).json({
     message: "Fetch jobs by accountId successfully",
     fields: jobFields,

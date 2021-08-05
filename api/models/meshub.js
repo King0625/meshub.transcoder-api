@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -42,6 +43,8 @@ const meshubSchema = new mongoose.Schema({
     }
   }
 });
+
+meshubSchema.plugin(mongoosePaginate);
 
 const Meshub = mongoose.model('Meshub', meshubSchema);
 

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -130,6 +131,8 @@ jobSchema.virtual('splitJobs', {
   localField: 'uuid',
   foreignField: 'uuid',
 })
+
+jobSchema.plugin(mongoosePaginate);
 
 const Job = mongoose.model('Job', jobSchema);
 

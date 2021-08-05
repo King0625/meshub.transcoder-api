@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -97,6 +98,8 @@ const splitJobSchema = new mongoose.Schema({
     }
   }
 });
+
+splitJobSchema.plugin(mongoosePaginate);
 
 const SplitJob = mongoose.model('SplitJob', splitJobSchema);
 

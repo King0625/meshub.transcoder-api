@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -37,9 +38,13 @@ const accountSchema = new mongoose.Schema({
         dayjs(ret.time_create).format('YYYY/MM/DD HH:mm:ss') : null;
       ret.time_use = ret.time_use ?
         dayjs(ret.time_use).format('YYYY/MM/DD HH:mm:ss') : null;
+      delete ret.password;
+      delete ret.__v;
     }
   }
 });
+
+accountSchema.plugin(mongoosePaginate);
 
 const Account = mongoose.model('Account', accountSchema);
 
