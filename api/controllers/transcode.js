@@ -23,7 +23,9 @@ function submitJobStatus(job) {
     ...jobData
   }
   console.log(JSON.stringify(jobData))
-  socketApi.sockets.emit('job-progress', jobProgressData)
+  const account = jobProgressData.account;
+  console.log("Emit this event to:", process.env.ADMIN_USER, ",", account)
+  socketApi.to(process.env.ADMIN_USER).to(account).emit('job-progress', jobProgressData)
 }
 
 async function refresh_meshub_status() {

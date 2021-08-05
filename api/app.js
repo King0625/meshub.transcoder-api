@@ -47,6 +47,10 @@ io.on('connection', socket => {
       return;
     }
     console.log(`[${new Date()}]{${socket.id}} connected`);
+
+    const account = payload.account;
+    socket.join(account);
+
     socket.on('disconnect', () => {
       console.log(`[${new Date()}]{${socket.id}} DISCONNECTED...`);
     })
