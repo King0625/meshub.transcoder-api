@@ -57,4 +57,9 @@ module.exports = {
       .isLength({ min: 6 }).withMessage("[body] 'password' must contain at least 6 characters"),
     validationMiddleware
   ],
+  cancelSelfJobsValidator: [
+    body('jobIds').exists().withMessage("[body] 'jobIds' is required")
+      .isArray({ min: 1 }).withMessage("[body] 'jobIds' must be an array that contains at least 1 element"),
+    validationMiddleware
+  ]
 }

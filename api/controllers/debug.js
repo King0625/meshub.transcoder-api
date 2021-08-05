@@ -39,6 +39,21 @@ exports.getSelfJobs = async function (req, res, next) {
   })
 }
 
+exports.cancelSelfJobs = async function (req, res, next) {
+  const account = req.user.account;
+  const jobIds = req.body.jobIds;
+  const result = await Job.deleteMany({
+    account,
+    status: "pending",
+    _id: { $in: jobIds }
+  })
+  return res.status(200).json({
+    message: "Delete pending jobs successfully",
+    desiredDeletedCounts: jobIds.length,
+    actualDeletedCounts: result.deletedCount
+  })
+}
+
 exports.getAllWorkers = async function (req, res, next) {
   const pageOptions = {
     page: parseInt(req.query.page, 10) || 1,
