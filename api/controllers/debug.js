@@ -129,10 +129,12 @@ exports.getPersonalJobSpentTime = async function (req, res, next) {
 
   const jobs = await Job.aggregate(options);
 
+  let overallSpentTime = 0;
   const jobSpentTimeData = [];
   for (let date = from; date < to; date += interval) {
     const job = jobs.find(job => job._id === date);
     if (job) {
+      overallSpentTime += job.totalSpentTime;
       jobSpentTimeData.push(job)
     }
     jobSpentTimeData.push({
@@ -143,6 +145,7 @@ exports.getPersonalJobSpentTime = async function (req, res, next) {
   }
   return res.status(200).json({
     message: "Fetch personal job spent time successfully",
+    overallSpentTime,
     data: jobSpentTimeData
   })
 }
@@ -307,10 +310,12 @@ exports.getJobSpentTimeByAccountId = async function (req, res, next) {
 
   const jobs = await Job.aggregate(options);
 
+  let overallSpentTime = 0;
   const jobSpentTimeData = [];
   for (let date = from; date < to; date += interval) {
     const job = jobs.find(job => job._id === date);
     if (job) {
+      overallSpentTime += job.totalSpentTime;
       jobSpentTimeData.push(job)
     }
     jobSpentTimeData.push({
@@ -321,6 +326,7 @@ exports.getJobSpentTimeByAccountId = async function (req, res, next) {
   }
   return res.status(200).json({
     message: "Fetch job spent time from a specific account successfully",
+    overallSpentTime,
     data: jobSpentTimeData
   })
 }
