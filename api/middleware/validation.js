@@ -61,5 +61,11 @@ module.exports = {
     body('jobIds').exists().withMessage("[body] 'jobIds' is required")
       .isArray({ min: 1 }).withMessage("[body] 'jobIds' must be an array that contains at least 1 element"),
     validationMiddleware
+  ],
+  jobSpentTimeValidator: [
+    query('from').exists().toInt().withMessage("[query] 'from' is required"),
+    query('to').exists().toInt().withMessage("[query] 'from' is required"),
+    query('interval').exists().toInt().withMessage("[query] 'from' is required"),
+    validationMiddleware
   ]
 }

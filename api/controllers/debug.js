@@ -54,6 +54,81 @@ exports.cancelSelfJobs = async function (req, res, next) {
   })
 }
 
+exports.getPersonalJobSpentTime = async function (req, res, next) {
+  let { from, to, interval } = req.query;
+
+  from = Math.floor(from / interval) * interval;
+
+  const account = req.user.account;
+
+  const options = [
+    {
+      $match: {
+        account,
+        status: 'finished',
+        createdAt: {
+          '$gte': new Date(from),
+          '$lt': new Date(to)
+        }
+      }
+    },
+    {
+      $group: {
+        '_id': {
+          "$subtract": [
+            { "$subtract": ["$createdAt", new Date("1970-01-01")] },
+            {
+              "$mod": [
+                { "$subtract": ["$createdAt", new Date("1970-01-01")] },
+                interval
+              ]
+            }
+          ]
+        },
+        'jobSpentTime': {
+          $push: { $divide: [{ $subtract: ["$finished_at", "$pending_at"] }, 1000] }
+        },
+      }
+    },
+    {
+      "$project": {
+        "tempId": "$_id",
+        "values": { "$sum": "$jobSpentTime" },
+      }
+    },
+    {
+      "$group": {
+        "_id": "$tempId",
+        "totalSpentTime": { "$sum": "$values" }
+      }
+    },
+    {
+      "$addFields": {
+        "timestamps": { "$toDate": "$_id" }
+      }
+    }
+  ]
+
+  const jobs = await Job.aggregate(options);
+
+  const jobSpentTimeData = [];
+  for (let date = from; date < to; date += interval) {
+    const job = jobs.find(job => job._id === date);
+    if (job) {
+      jobSpentTimeData.push(job)
+    }
+    jobSpentTimeData.push({
+      "_id": date,
+      "totalSpentTime": 0,
+      "timestamp": new Date(date)
+    })
+  }
+  return res.status(200).json({
+    message: "Fetch personal job spent time successfully",
+    data: jobSpentTimeData
+  })
+}
+
 exports.getAllWorkers = async function (req, res, next) {
   const pageOptions = {
     page: parseInt(req.query.page, 10) || 1,
@@ -148,5 +223,86 @@ exports.getJobsByAccountId = async function (req, res, next) {
     fields: jobFields,
     splitJobFields,
     data: jobs
+  })
+}
+
+exports.getJobSpentTimeByAccountId = async function (req, res, next) {
+  const { accountId } = req.params;
+  const accountData = await Account.findOne({ _id: accountId });
+  if (!accountData) {
+    return res.status(404).json({
+      message: "AccountId not found"
+    })
+  }
+
+  let { from, to, interval } = req.query;
+
+  from = Math.floor(from / interval) * interval;
+
+  const options = [
+    {
+      $match: {
+        account: accountData.account,
+        status: 'finished',
+        createdAt: {
+          '$gte': new Date(from),
+          '$lt': new Date(to)
+        }
+      }
+    },
+    {
+      $group: {
+        '_id': {
+          "$subtract": [
+            { "$subtract": ["$createdAt", new Date("1970-01-01")] },
+            {
+              "$mod": [
+                { "$subtract": ["$createdAt", new Date("1970-01-01")] },
+                interval
+              ]
+            }
+          ]
+        },
+        'jobSpentTime': {
+          $push: { $divide: [{ $subtract: ["$finished_at", "$pending_at"] }, 1000] }
+        },
+      }
+    },
+    {
+      "$project": {
+        "tempId": "$_id",
+        "values": { "$sum": "$jobSpentTime" },
+      }
+    },
+    {
+      "$group": {
+        "_id": "$tempId",
+        "totalSpentTime": { "$sum": "$values" }
+      }
+    },
+    {
+      "$addFields": {
+        "timestamps": { "$toDate": "$_id" }
+      }
+    }
+  ]
+
+  const jobs = await Job.aggregate(options);
+
+  const jobSpentTimeData = [];
+  for (let date = from; date < to; date += interval) {
+    const job = jobs.find(job => job._id === date);
+    if (job) {
+      jobSpentTimeData.push(job)
+    }
+    jobSpentTimeData.push({
+      "_id": date,
+      "totalSpentTime": 0,
+      "timestamp": new Date(date)
+    })
+  }
+  return res.status(200).json({
+    message: "Fetch job spent time from a specific account successfully",
+    data: jobSpentTimeData
   })
 }

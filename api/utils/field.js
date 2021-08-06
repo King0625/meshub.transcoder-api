@@ -55,5 +55,9 @@ module.exports = {
     fieldInfo("createdAt", "createdAt"),
     fieldInfo("updatedAt", "updatedAt"),
     fieldInfo("dispatchedAt", "dispatchedAt"),
+  ],
+  jobSpentTimeDataFields: [
+    fieldInfo("totalSpentTime", "totalSpentTime (sec)"),
+    fieldInfo("timestamp", "timestamp")
   ]
 }
