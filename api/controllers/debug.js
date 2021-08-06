@@ -136,12 +136,13 @@ exports.getPersonalJobSpentTime = async function (req, res, next) {
     if (job) {
       overallSpentTime += job.totalSpentTime;
       jobSpentTimeData.push(job)
+    } else {
+      jobSpentTimeData.push({
+        "_id": date,
+        "totalSpentTime": 0,
+        "timestamp": new Date(date)
+      })
     }
-    jobSpentTimeData.push({
-      "_id": date,
-      "totalSpentTime": 0,
-      "timestamp": new Date(date)
-    })
   }
   return res.status(200).json({
     message: "Fetch personal job spent time successfully",
@@ -317,12 +318,13 @@ exports.getJobSpentTimeByAccountId = async function (req, res, next) {
     if (job) {
       overallSpentTime += job.totalSpentTime;
       jobSpentTimeData.push(job)
+    } else {
+      jobSpentTimeData.push({
+        "_id": date,
+        "totalSpentTime": 0,
+        "timestamp": new Date(date)
+      })
     }
-    jobSpentTimeData.push({
-      "_id": date,
-      "totalSpentTime": 0,
-      "timestamp": new Date(date)
-    })
   }
   return res.status(200).json({
     message: "Fetch job spent time from a specific account successfully",
