@@ -42,15 +42,33 @@ exports.getSelfJobs = async function (req, res, next) {
 exports.cancelSelfJobs = async function (req, res, next) {
   const account = req.user.account;
   const jobIds = req.body.jobIds;
-  const result = await Job.deleteMany({
+  const jobsToBeDeleted = await Job.find({
     account,
     status: "pending",
     _id: { $in: jobIds }
   })
+
+  const deletedJobIds = jobsToBeDeleted.map(job => job._id);
+  const deletedJobUuids = jobsToBeDeleted.map(job => job.uuid);
+  console.log("deletedJobIds", deletedJobIds);
+
+  const jobDeletedResult = await Job.deleteMany({
+    account,
+    _id: { $in: deletedJobIds }
+  })
+  console.log("jobDeletedResult:", jobDeletedResult);
+
+  const splitJobDeletedResult = await SplitJob.deleteMany({
+    account,
+    uuid: { $in: deletedJobUuids }
+  })
+  console.log("splitJobDeletedResult:", splitJobDeletedResult);
+
   return res.status(200).json({
     message: "Delete pending jobs successfully",
     desiredDeletedCounts: jobIds.length,
-    actualDeletedCounts: result.deletedCount
+    actualDeletedCounts: deletedJobIds.length,
+    deletedJobIds
   })
 }
 
