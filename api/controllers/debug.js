@@ -122,7 +122,7 @@ exports.getPersonalJobSpentTime = async function (req, res, next) {
     },
     {
       "$addFields": {
-        "timestamps": { "$toDate": "$_id" }
+        "timestamp": { "$toDate": "$_id" }
       }
     }
   ]
@@ -304,7 +304,7 @@ exports.getJobSpentTimeByAccountId = async function (req, res, next) {
     },
     {
       "$addFields": {
-        "timestamps": { "$toDate": "$_id" }
+        "timestamp": { "$toDate": "$_id" }
       }
     }
   ]
