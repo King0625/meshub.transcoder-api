@@ -98,7 +98,7 @@ async function job_check_processing(params) {
     paramPreset: params.resolutions[0].paramPreset,
     paramResolutionWidth: params.resolutions[0].paramResolutionWidth,
     paramResolutionHeight: params.resolutions[0].paramResolutionHeight
-  }).populate("splitJobs", "-_id -__v -in_progress -meshubId -createdAt -updatedAt");
+  }).populate("splitJobs", "-_id -__v");
   console.log("found\n" + JSON.stringify(g_job_test, '', '\t'));
   return g_job_test;
 }
