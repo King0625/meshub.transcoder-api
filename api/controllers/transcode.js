@@ -87,10 +87,11 @@ async function job_dispatch(job, duration, alive_meshubs, meshubNumbers, hasPrev
   })();
 }
 
-async function job_check_processing(params) {
+async function job_check_processing(params, account) {
   console.log(JSON.stringify(params, '', '\t'));
   const g_job_test = await Job.findOne({
     status: { "$in": ["transcoding", "pending", "merging", "uploading"] },
+    account,
     sourceUrl: params.transcode_job.sourceUrl,
     job_type: params.transcode_job.job_type,
     paramBitrate: params.resolutions[0].paramBitrate,
@@ -205,27 +206,17 @@ function find_job_uuid_from_slice_filename(str) {
 exports.submitJob = async (req, res, next) => {
   console.log(util.inspect(req.body));
 
+  const account = req.user.account;
   const meshubs_with_new_status = await refresh_meshub_status();
 
   const g_job_data = req.body;
   const g_jobs = req.body.resolutions;
 
-  const exist_job = await job_check_processing(g_job_data);
+  const exist_job = await job_check_processing(g_job_data, account);
   if (exist_job != null) {
-    let jobs = [];
-    let job_json = {};
-    job_json = exist_job.toJSON();
-    delete job_json._id;
-    delete job_json.__v;
-    delete job_json.createdAt;
-    delete job_json.updatedAt;
-    delete job_json.splitJobs;
-    jobs.push(job_json);
-    res.status(200).json({
-      sourceUrl: exist_job.sourceUrl,
-      jobs: jobs
-    })
-    return;
+    return res.status(409).json({
+      message: "Duplicated job"
+    });
   }
 
   const alive_meshubs = meshubs_with_new_status.filter(meshub => !meshub.dead);
@@ -255,7 +246,7 @@ exports.submitJob = async (req, res, next) => {
   }
 
   for (g_job of g_jobs) {
-    g_job.account = req.user.account;
+    g_job.account = account;
     g_job.uuid = uuidv4();
     const job_info = {};
     Object.assign(job_info, g_job_data.transcode_job, g_job, { overall_progress: 0 });
