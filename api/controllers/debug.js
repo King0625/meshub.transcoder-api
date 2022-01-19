@@ -89,8 +89,7 @@ exports.getPersonalJobSpentTime = async function (req, res, next) {
           '$gte': new Date(from),
           '$lt': new Date(to)
         }
-      },
-      sort: { createdAt: -1 },
+      }
     },
     {
       $group: {
