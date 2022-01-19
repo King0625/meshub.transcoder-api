@@ -27,7 +27,8 @@ exports.getSelfJobs = async function (req, res, next) {
   const pageOptions = {
     page: parseInt(req.query.page, 10) || 1,
     limit: parseInt(req.query.limit, 10) || 10,
-    populate: 'splitJobs'
+    populate: 'splitJobs',
+    sort: { createdAt: -1 },
   }
 
   const jobs = await Job.paginate({ account }, pageOptions)
@@ -88,7 +89,8 @@ exports.getPersonalJobSpentTime = async function (req, res, next) {
           '$gte': new Date(from),
           '$lt': new Date(to)
         }
-      }
+      },
+      sort: { createdAt: -1 },
     },
     {
       $group: {
@@ -196,7 +198,8 @@ exports.getSplitJobsByWorkerId = async function (req, res, next) {
 
   const pageOptions = {
     page: parseInt(req.query.page, 10) || 1,
-    limit: parseInt(req.query.limit, 10) || 10
+    limit: parseInt(req.query.limit, 10) || 10,
+    sort: { createdAt: -1 },
   }
   const splitJobs = await SplitJob.paginate({ meshubId: meshub.ip_address }, pageOptions);
 
@@ -236,7 +239,8 @@ exports.getJobsByAccountId = async function (req, res, next) {
   const pageOptions = {
     page: parseInt(req.query.page, 10) || 1,
     limit: parseInt(req.query.limit, 10) || 10,
-    populate: 'splitJobs'
+    populate: 'splitJobs',
+    sort: { createdAt: -1 },
   }
 
   const jobs = await Job.paginate({ account: accountData.account }, pageOptions)
